@@ -2,7 +2,7 @@ from bisect import bisect
 import pandas as pd
 import wandb
 
-# preprocessing
+# for preprocessing
 def read_notebook(path):
     return (
         pd.read_json(path, dtype={"cell_type": "category", "source": "str"})
@@ -15,7 +15,7 @@ def get_ranks(base, derived):
     return [base.index(d) for d in derived]
 
 
-# optimizer
+# for optimizer
 def adjust_lr(optimizer, epoch):
     if epoch < 1:
         lr = 5e-5
@@ -31,7 +31,7 @@ def adjust_lr(optimizer, epoch):
     return lr
 
 
-# evaluation
+# for evaluation
 def count_inversions(a):
     inversions = 0
     sorted_so_far = []
@@ -53,8 +53,10 @@ def calc_kendall_tau(ground_truth, predictions):
     return 1 - 4 * total_inversions / total_2max
 
 
-# logging
+# for logging
 def wandb_log(**kwargs):
-    """Logs a key-value pair to W&B"""
-    for k, v in kwargs.items():
-        wandb.log({k: v})
+    try:
+        for k, v in kwargs.items():
+            wandb.log({k: v})
+    except:
+        pass
