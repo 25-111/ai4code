@@ -21,7 +21,7 @@ def main(config):
         wandb_config = WandbConfig()
         wandb.login(key=config.wandb_key)
 
-        run = wandb.init(project="ai4code", config=wandb_config, entity="leejoonhun")
+        run = wandb.init(project="ai4code", config=wandb_config, entity="nciaproject")
 
     # Loading Data
     df_orders, _, df_valid, df_train_md, df_valid_md = preprocess(config)

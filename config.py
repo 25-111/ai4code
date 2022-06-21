@@ -4,11 +4,23 @@ import torch
 # from kaggle_secrets import UserSecretsClient
 # user_secrets = UserSecretsClient()
 # wandb_key = user_secrets.get_secret("WANDB_API_KEY")
-wandb_key = None
+wandb_key = "5f3589d7b951d748cc5a309b0b8c08aa7945ce52"
 
 
 class Config:
-    model_name = "bert-large"  # ["bert-large", "distill-beart"]
+    # Model
+    available_models = [
+        "bert-large-uncased",
+        "bert-large-cased",
+        "distilbert-base-uncased",
+        "microsoft/codebert-base",
+        "roberta-base",
+        "roberta-large",
+        "albert-base-v2",
+    ]
+    model_name = "distilbert-base-uncased"
+
+    # Train
     optim = "AdamW"
     loss = "MSE"
     valid_ratio = 0.1
