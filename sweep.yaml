@@ -1,0 +1,24 @@
+program: train.py
+method: random
+metric:
+  goal: minimize
+  name: val_loss
+parameters:
+  hidden_size:
+    values: [96, 128, 148]
+  layer_1_size:
+    values: [10, 12, 14, 16, 18, 20]
+  layer_2_size:
+    values: [24, 28, 32, 36, 40, 44]
+  learning_rate:
+    values: [0.001, 0.01, 0.003]
+  decay:
+    values: [1e-5, 1e-6, 1e-7]
+  momentum:
+    values: [0.8, 0.9, 0.95]
+  epochs:
+    value: 27
+early_terminate:
+  type: hyperband
+  s: 2
+  max_iter: 27

@@ -16,19 +16,18 @@ def get_model(config):
         model_config = AlbertConfig(config)
     else:
         model_config = OtherConfig(config)
-    return CodeRearranger(model_config)
+    return CodeRearranger(model_config), model_config
 
 
 class CodeRearranger(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.config = config
-        self.drop = nn.Dropout(0.3)
-        self.fc = nn.Linear(1024, 1)
+        self.fc = nn.Linear(769, 1)
 
     def forward(self, ids, mask):
         x = self.config.model(ids, mask)[0]
-        x = self.top(x[:, 0, :])
+        x = self.fc(x[:, 0, :])
         return x
 
 

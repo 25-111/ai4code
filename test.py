@@ -1,7 +1,7 @@
 from datetime import datetime
 from pytz import timezone
 from torch.utils.data import DataLoader
-from data import preprocess, NotebookDataset
+from dataset import preprocess, NotebookDataset
 from model import get_model
 from train import validate
 from config import Config
@@ -13,10 +13,16 @@ def test():
 
     df, df_test_md = preprocess(config)
 
+    model, model_config = get_model(config)
+
     testset = NotebookDataset(
-        df_test_md,
-        max_len=config.max_len,
+        df[df["cell_type"] == "markdown"].reset_index(drop=True),
+        max_len=512,
+        max_len_md=64,
+        fts=get_features,
+        model_config=model_config,
     )
+
     testloader = DataLoader(
         testset,
         batch_size=config.batch_size,
@@ -24,8 +30,6 @@ def test():
         num_workers=config.num_workers,
         drop_last=False,
     )
-
-    model = get_model(config)
 
     _, y_test = validate(model, testloader)
     df.loc[df["cell_type"] == "markdown", "pred"] = y_test

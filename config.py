@@ -4,7 +4,8 @@ import torch
 # from kaggle_secrets import UserSecretsClient
 # user_secrets = UserSecretsClient()
 # wandb_key = user_secrets.get_secret("WANDB_API_KEY")
-wandb_key = "5f3589d7b951d748cc5a309b0b8c08aa7945ce52"
+WANDB_KEY = None
+# WANDB_KEY = "5f3589d7b951d748cc5a309b0b8c08aa7945ce52"
 
 
 class Config:
@@ -18,7 +19,7 @@ class Config:
         "roberta-large",
         "albert-base-v2",
     ]
-    model_name = "distilbert-base-uncased"
+    model_name = available_models[2]
 
     # Train
     optim = "AdamW"
@@ -29,11 +30,13 @@ class Config:
     num_workers = 8
     batch_size = 32
     lr = 3e-4
+    seed = 1234
 
     # Defaults
     device = "cuda" if torch.cuda.is_available() else "cpu"
     data_dir = Path("/data/AI4Code")  # Path("../input/AI4Code")
-    wandb_key = wandb_key
+    log_dir = Path("/data/AI4Code/log")
+    wandb_key = WANDB_KEY
 
 
 class WandbConfig:

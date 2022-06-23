@@ -5,11 +5,12 @@ import wandb
 import numpy as np
 import torch
 from sklearn.metrics import mean_squared_error
-from data import preprocess, get_loaders
+from preprocess import preprocess
+from dataset import get_loaders
 from model import get_model
-from train import train
 from config import Config, WandbConfig
-from utils import adjust_lr, calc_kendall_tau, wandb_log
+from utils import adjust_lr, wandb_log
+from metric import calc_kendall_tau
 
 
 def main(config):
@@ -21,14 +22,19 @@ def main(config):
         wandb_config = WandbConfig()
         wandb.login(key=config.wandb_key)
 
-        run = wandb.init(project="ai4code", config=wandb_config, entity="nciaproject")
+        run = wandb.init(
+            project="ai4code",
+            entity="nciaproject",
+            config=wandb_config,
+            dir=config.log_dir,
+        )
+
+    # Loading Model
+    model, model_config = get_model(config).to(config.device)
 
     # Loading Data
     df_orders, _, df_valid, df_train_md, df_valid_md = preprocess(config)
     trainloader, validloader = get_loaders(df_train_md, df_valid_md, config)
-
-    # Loading Model
-    model = get_model(config).to(config.device)
 
     # Setting Train
     optimizer = yield_optim(model, config)
@@ -75,10 +81,10 @@ def validate(model, validloader, config):
                 config.device
             )
 
-            pred = model(inputs[0], inputs[1])
+            pred = model(*inputs)
 
-            preds.append(pred.detach().cpu().numpy().ravel())
             labels.append(label.detach().cpu().numpy().ravel())
+            preds.append(pred.detach().cpu().numpy().ravel())
 
     return np.concatenate(labels), np.concatenate(preds)
 
@@ -99,7 +105,7 @@ def train(model, trainloader, validloader, optimizer, criterion, config):
             )
 
             optimizer.zero_grad()
-            pred = model(inputs[0], inputs[1])
+            pred = model(*inputs)
 
             loss = criterion(pred, label)
             wandb_log(train_loss=loss.item())
@@ -107,9 +113,9 @@ def train(model, trainloader, validloader, optimizer, criterion, config):
             loss.backward()
             optimizer.step()
 
+            labels.append(label.detach().cpu().numpy().ravel())
             losses.append(loss.detach().cpu().item())
             preds.append(pred.detach().cpu().numpy().ravel())
-            labels.append(label.detach().cpu().numpy().ravel())
 
             tbar.set_description(
                 f"Epoch {epoch + 1} Loss: {np.mean(losses):-4e} lr: {lr}"
