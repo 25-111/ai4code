@@ -1,8 +1,7 @@
 import os
-import json, pickle
 from tqdm import tqdm
 import pandas as pd
-from sklearn.model_selection import GroupShuffleSplit  # TODO: seed 추가
+from sklearn.model_selection import GroupShuffleSplit
 import numpy as np
 
 
@@ -54,7 +53,7 @@ def preprocess(config):
             df["pct_rank"] = df["rank"] / df.groupby("id")["cell_id"].transform("count")
 
             splitter = GroupShuffleSplit(
-                n_splits=1, test_size=config.valid_ratio, random_state=0
+                n_splits=1, test_size=config.valid_ratio, random_state=config.seed
             )
             idx_train, idx_valid = next(splitter.split(df, groups=df["ancestor_id"]))
             df_train = df.loc[idx_train].reset_index(drop=True)
@@ -67,30 +66,45 @@ def preprocess(config):
                 drop=True
             )
 
-            fts_train, fts_valid = get_features(df_train), get_features(df_valid)
-
             df_train.to_csv(config.data_dir / "train.csv", index=False)
             df_train_md.to_csv(config.data_dir / "train_md.csv", index=False)
             df_valid.to_csv(config.data_dir / "valid.csv", index=False)
             df_valid_md.to_csv(config.data_dir / "valid_md.csv", index=False)
-            json.dump(fts_train, open(config.data_dir / "train_fts.json", "wt"))
-            json.dump(fts_valid, open(config.data_dir / "valid_fts.json", "wt"))
+            return df_train, df_train_md, df_valid, df_valid_md, df_orders
 
         elif config.mode == "test":
-            df = (
+            df_test = (
                 pd.concat(notebooks)
                 .set_index("id", append=True)
                 .swaplevel()
                 .sort_index(level="id", sort_remaining=False)
             )
 
-            df["rank"] = df.groupby(["id", "cell_type"]).cumcount()
-            df["pred"] = df.groupby(["id", "cell_type"])["rank"].rank(pct=True)
+            df_test["rank"] = df_test.groupby(["id", "cell_type"]).cumcount()
+            df_test["pred"] = df_test.groupby(["id", "cell_type"])["rank"].rank(
+                pct=True
+            )
 
-            fts_test = get_features(df)
+            df_test_md = df_test[df_test["cell_type"] == "markdown"].reset_index(
+                drop=True
+            )
 
-            df.to_csv(config.data_dir / "test.csv", index=False)
-            json.dump(fts_test, open(config.data_dir / "test_fts.json", "wt"))
+            df_test.to_csv(config.data_dir / "test.csv", index=False)
+            df_test_md.to_csv(config.data_dir / "test_md.csv", index=False)
+            return df_test, df_test_md
+
+    else:
+        if config.mode == "train":
+            df_train = pd.read_csv(config.data_dir / "train.csv")
+            df_train_md = pd.read_csv(config.data_dir / "train_md.csv")
+            df_valid = pd.read_csv(config.data_dir / "valid.csv")
+            df_valid_md = pd.read_csv(config.data_dir / "valid_md.csv")
+            return df_train, df_train_md, df_valid, df_valid_md
+
+        elif config.mode == "test":
+            df_test = pd.read_csv(config.data_dir / "test.csv")
+            df_test_md = pd.read_csv(config.data_dir / "test_md.csv")
+            return df_test, df_test_md
 
 
 def read_notebook(path):

@@ -5,7 +5,6 @@ import torch
 # user_secrets = UserSecretsClient()
 # wandb_key = user_secrets.get_secret("WANDB_API_KEY")
 WANDB_KEY = None
-# WANDB_KEY = "5f3589d7b951d748cc5a309b0b8c08aa7945ce52"
 
 
 class Config:
@@ -25,7 +24,8 @@ class Config:
     optim = "AdamW"
     loss = "MSE"
     valid_ratio = 0.1
-    max_len = 120
+    max_len = 512
+    max_len_md = 64
     num_epochs = 2
     num_workers = 8
     batch_size = 32
@@ -36,6 +36,7 @@ class Config:
     device = "cuda" if torch.cuda.is_available() else "cpu"
     data_dir = Path("/data/AI4Code")  # Path("../input/AI4Code")
     log_dir = Path("/data/AI4Code/log")
+    result_dir = Path("/data/AI4Code/result")
     wandb_key = WANDB_KEY
 
 

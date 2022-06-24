@@ -1,21 +1,16 @@
-import os
-import pickle
-from tqdm import tqdm
-import pandas as pd
-from sklearn.model_selection import GroupShuffleSplit
 import torch
 from torch.utils.data import DataLoader, Dataset
-from utils import read_notebook, get_ranks
+from preprocess import get_features
 
 
 class NotebookDataset(Dataset):
-    def __init__(self, df, max_len, max_len_md, fts, model_config):
+    def __init__(self, df, max_len, max_len_md, fts, tokenizer):
         super().__init__()
         self.df = df.reset_index(drop=True)
         self.max_len = max_len
         self.max_len_md = max_len_md
         self.fts = fts
-        self.tokenizer = model_config.tokenizer
+        self.tokenizer = tokenizer
 
     def __getitem__(self, index):
         row = self.df.iloc[index]
@@ -70,14 +65,25 @@ class NotebookDataset(Dataset):
         return self.df.shape[0]
 
 
-def get_loaders(config):
+def get_loaders(df_train, df_train_md, df_valid, df_valid_md, tokenizer, config):
     use_pin_mem = config.device.startswith("cuda")
 
-    df_train_md = pd.read_csv(config.data_dir / "train_md.csv")
-    df_valid_md = pd.read_csv(config.data_dir / "valid_md.csv")
+    fts_train, fts_valid = get_features(df_train), get_features(df_valid)
 
-    trainset = NotebookDataset(df_train_md, max_len=config.max_len)  # TODO: Dataset 변경함
-    validset = NotebookDataset(df_valid_md, max_len=config.max_len)
+    trainset = NotebookDataset(
+        df_train_md,
+        max_len=config.max_len,
+        max_len_md=config.max_len_md,
+        fts=fts_train,
+        tokenizer=tokenizer,
+    )
+    validset = NotebookDataset(
+        df_valid_md,
+        max_len=config.max_len,
+        max_len_md=config.max_len_md,
+        fts=fts_valid,
+        tokenizer=tokenizer,
+    )
 
     trainloader = DataLoader(
         trainset,
@@ -96,3 +102,7 @@ def get_loaders(config):
         drop_last=False,
     )
     return trainloader, validloader
+
+
+def read_data(data, config):
+    return (d.to(config.device) for d in data[:-1]), data[-1].to(config.device)

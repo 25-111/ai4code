@@ -1,6 +1,7 @@
 from datetime import datetime
 from pytz import timezone
 from torch.utils.data import DataLoader
+from preprocess import preprocess, get_features
 from dataset import preprocess, NotebookDataset
 from model import get_model
 from train import validate
@@ -11,18 +12,18 @@ def test():
     config = Config()
     config.mode = "test"
 
-    df, df_test_md = preprocess(config)
+    tokenizer, model = get_model(config)
 
-    model, model_config = get_model(config)
+    df_test, df_test_md = preprocess(config)
+    fts_test = get_features(df_test)
 
     testset = NotebookDataset(
-        df[df["cell_type"] == "markdown"].reset_index(drop=True),
-        max_len=512,
-        max_len_md=64,
-        fts=get_features,
-        model_config=model_config,
+        df_test_md,
+        max_len=config.max_len,
+        max_len_md=config.max_len_md,
+        fts=fts_test,
+        tokenizer=tokenizer,
     )
-
     testloader = DataLoader(
         testset,
         batch_size=config.batch_size,
@@ -32,10 +33,10 @@ def test():
     )
 
     _, y_test = validate(model, testloader)
-    df.loc[df["cell_type"] == "markdown", "pred"] = y_test
+    df_test.loc[df_test["cell_type"] == "markdown", "pred"] = y_test
 
     sub_df = (
-        df.sort_values("pred")
+        df_test.sort_values("pred")
         .groupby("id")["cell_id"]
         .apply(lambda x: " ".join(x))
         .reset_index()
@@ -44,7 +45,8 @@ def test():
 
     time_stamp = datetime.now(timezone("Asia/Seoul")).strftime("%y%m%d-%H%M")
     sub_df.to_csv(
-        f"./results/submission_{config.model_name}_{time_stamp}.csv", index=False
+        f"{config.result_dir}/submission_{config.model_name}_{time_stamp}.csv",
+        index=False,
     )
 
 

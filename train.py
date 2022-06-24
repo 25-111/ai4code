@@ -1,19 +1,18 @@
 import sys
-import argparse
 from tqdm import tqdm
 import wandb
 import numpy as np
 import torch
 from sklearn.metrics import mean_squared_error
 from preprocess import preprocess
-from dataset import get_loaders
+from dataset import get_loaders, read_data
 from model import get_model
 from config import Config, WandbConfig
 from utils import adjust_lr, wandb_log
 from metric import calc_kendall_tau
 
 
-def main(config):
+def main():
     # Configuration
     config = Config()
     config.mode = "train"
@@ -30,11 +29,13 @@ def main(config):
         )
 
     # Loading Model
-    model, model_config = get_model(config).to(config.device)
+    tokenizer, model = get_model(config)
 
     # Loading Data
-    df_orders, _, df_valid, df_train_md, df_valid_md = preprocess(config)
-    trainloader, validloader = get_loaders(df_train_md, df_valid_md, config)
+    df_train, df_train_md, df_valid, df_valid_md, df_orders = preprocess(config)
+    trainloader, validloader = get_loaders(
+        df_train, df_train_md, df_valid, df_valid_md, tokenizer, config
+    )
 
     # Setting Train
     optimizer = yield_optim(model, config)
@@ -77,9 +78,7 @@ def validate(model, validloader, config):
     preds, labels = [], []
     with torch.no_grad():
         for _, data in enumerate(tbar):
-            inputs, label = (d.to(config.device) for d in data[:-1]), data[-1].to(
-                config.device
-            )
+            inputs, label = read_data(data, config)
 
             pred = model(*inputs)
 
@@ -100,9 +99,7 @@ def train(model, trainloader, validloader, optimizer, criterion, config):
 
         losses, preds, labels = [], [], []
         for _, data in enumerate(tbar):
-            inputs, label = (d.to(config.device) for d in data[:-1]), data[-1].to(
-                config.device
-            )
+            inputs, label = read_data(data, config)
 
             optimizer.zero_grad()
             pred = model(*inputs)
@@ -129,8 +126,4 @@ def train(model, trainloader, validloader, optimizer, criterion, config):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--model", type=str, help="name of model")
-    args = parser.parse_args()
-
-    main(args)
+    main()
