@@ -5,6 +5,7 @@ import torch
 # user_secrets = UserSecretsClient()
 # wandb_key = user_secrets.get_secret("WANDB_API_KEY")
 WANDB_KEY = None
+# WANDB_KEY = "5f3589d7b951d748cc5a309b0b8c08aa7945ce52"
 
 
 class Config:
@@ -18,7 +19,7 @@ class Config:
         "roberta-large",
         "albert-base-v2",
     ]
-    model_name = available_models[2]
+    model_name = available_models[0]
 
     # Train
     optim = "AdamW"

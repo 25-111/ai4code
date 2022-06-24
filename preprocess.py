@@ -95,11 +95,17 @@ def preprocess(config):
 
     else:
         if config.mode == "train":
+            df_orders = pd.read_csv(
+                config.data_dir / "train_orders.csv",
+                index_col="id",
+                squeeze=True,
+            ).str.split()
+
             df_train = pd.read_csv(config.data_dir / "train.csv")
             df_train_md = pd.read_csv(config.data_dir / "train_md.csv")
             df_valid = pd.read_csv(config.data_dir / "valid.csv")
             df_valid_md = pd.read_csv(config.data_dir / "valid_md.csv")
-            return df_train, df_train_md, df_valid, df_valid_md
+            return df_train, df_train_md, df_valid, df_valid_md, df_orders
 
         elif config.mode == "test":
             df_test = pd.read_csv(config.data_dir / "test.csv")

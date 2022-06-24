@@ -3,6 +3,7 @@ from tqdm import tqdm
 import wandb
 import numpy as np
 import torch
+import transformers as tx
 from sklearn.metrics import mean_squared_error
 from preprocess import preprocess
 from dataset import get_loaders, read_data
@@ -67,7 +68,7 @@ def yield_optim(model, config):
 
 def yield_loss(config):
     if config.loss == "MSE":
-        torch.nn.MSELoss()
+        return torch.nn.MSELoss()
 
 
 def validate(model, validloader, config):
@@ -78,18 +79,18 @@ def validate(model, validloader, config):
     preds, labels = [], []
     with torch.no_grad():
         for _, data in enumerate(tbar):
-            inputs, label = read_data(data, config)
+            inputs, labels = read_data(data, config)
 
             pred = model(*inputs)
 
-            labels.append(label.detach().cpu().numpy().ravel())
+            labels.append(labels.detach().cpu().numpy().ravel())
             preds.append(pred.detach().cpu().numpy().ravel())
 
     return np.concatenate(labels), np.concatenate(preds)
 
 
 def train(model, trainloader, validloader, optimizer, criterion, config):
-    np.random.seed(0)
+    np.random.seed(config.seed)
 
     for epoch in range(config.num_epochs):
         model.train()
@@ -99,18 +100,18 @@ def train(model, trainloader, validloader, optimizer, criterion, config):
 
         losses, preds, labels = [], [], []
         for _, data in enumerate(tbar):
-            inputs, label = read_data(data, config)
+            inputs, labels = read_data(data, config)
 
             optimizer.zero_grad()
             pred = model(*inputs)
 
-            loss = criterion(pred, label)
+            loss = criterion(pred, labels)
             wandb_log(train_loss=loss.item())
 
             loss.backward()
             optimizer.step()
 
-            labels.append(label.detach().cpu().numpy().ravel())
+            labels.append(labels.detach().cpu().numpy().ravel())
             losses.append(loss.detach().cpu().item())
             preds.append(pred.detach().cpu().numpy().ravel())
 
@@ -123,6 +124,12 @@ def train(model, trainloader, validloader, optimizer, criterion, config):
         print("Validation MSE:", np.round(mean_squared_error(y_val, y_pred), 4))
         print()
     return model, y_pred
+
+
+class Trainer(tx.Trainer):
+    def compute_loss(self, model, inputs, criterion):
+        labels = inputs.pop("labels")
+        outputs = model(**inputs)
 
 
 if __name__ == "__main__":
