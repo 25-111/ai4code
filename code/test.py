@@ -1,12 +1,15 @@
-from torch.utils.data import DataLoader
+import sys
+from tqdm import tqdm
+import numpy as np
+import torch
+import torch.utils.data as dt
 from preprocess import preprocess, get_features
-from dataset import NotebookDataset
+from dataset import NotebookDataset, read_data
 from model import get_model
-from train import validate
 from config import Config
 
 
-def test():
+def main():
     config = Config()
     config.mode = "test"
 
@@ -22,7 +25,7 @@ def test():
         fts=fts_test,
         tokenizer=tokenizer,
     )
-    testloader = DataLoader(
+    testloader = dt.DataLoader(
         testset,
         batch_size=config.batch_size,
         shuffle=False,
@@ -30,7 +33,7 @@ def test():
         drop_last=False,
     )
 
-    _, y_test = validate(model, testloader)
+    _, y_test = test(model, testloader)
     df_test.loc[df_test["cell_type"] == "markdown", "pred"] = y_test
 
     sub_df = (
@@ -47,5 +50,23 @@ def test():
     )
 
 
+def test(model, dataloader, config):
+    model.eval()
+
+    tbar = tqdm(dataloader, file=sys.stdout)
+
+    preds, labels = [], []
+    with torch.no_grad():
+        for _, data in enumerate(tbar):
+            inputs, labels = read_data(data, config)
+
+            pred = model(*inputs)
+
+            labels.append(labels.detach().cpu().numpy().ravel())
+            preds.append(pred.detach().cpu().numpy().ravel())
+
+    return np.concatenate(labels), np.concatenate(preds)
+
+
 if __name__ == "__main__":
-    test()
+    main()

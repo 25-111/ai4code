@@ -1,5 +1,4 @@
 import sys, warnings
-from tqdm import tqdm
 import wandb
 import numpy as np
 import torch
@@ -10,7 +9,6 @@ from preprocess import preprocess, get_features
 from dataset import NotebookDataset, read_data
 from model import get_model
 from config import Config, WandbConfig
-from metric import calc_kendall_tau
 
 
 def main():
@@ -59,10 +57,12 @@ def main():
         output_dir=config.result_dir,
         do_train=True,
         do_predict=True,
+        evaluation_strategy="steps",
         per_device_train_batch_size=config.batch_size,
         learning_rate=config.lr,
         num_train_epochs=config.num_epochs,
         logging_dir=config.log_dir,
+        save_strategy="steps",
         seed=config.seed,
         dataloader_num_workers=config.num_workers,
         load_best_model_at_end=True,
@@ -85,24 +85,6 @@ def main():
 
     if config.wandb_key:
         run.finish()
-
-
-def validate(model, validloader, config):
-    model.eval()
-
-    tbar = tqdm(validloader, file=sys.stdout)
-
-    preds, labels = [], []
-    with torch.no_grad():
-        for _, data in enumerate(tbar):
-            inputs, labels = read_data(data, config)
-
-            pred = model(*inputs)
-
-            labels.append(labels.detach().cpu().numpy().ravel())
-            preds.append(pred.detach().cpu().numpy().ravel())
-
-    return np.concatenate(labels), np.concatenate(preds)
 
 
 if __name__ == "__main__":
