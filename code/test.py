@@ -1,8 +1,6 @@
-from datetime import datetime
-from pytz import timezone
 from torch.utils.data import DataLoader
 from preprocess import preprocess, get_features
-from dataset import preprocess, NotebookDataset
+from dataset import NotebookDataset
 from model import get_model
 from train import validate
 from config import Config
@@ -43,9 +41,8 @@ def test():
     )
     sub_df.rename(columns={"cell_id": "cell_order"}, inplace=True)
 
-    time_stamp = datetime.now(timezone("Asia/Seoul")).strftime("%y%m%d-%H%M")
     sub_df.to_csv(
-        f"{config.result_dir}/submission_{config.model_name}_{time_stamp}.csv",
+        f"{config.result_dir}/submission_{config.model_name}_{config.timestamp}.csv",
         index=False,
     )
 

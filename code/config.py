@@ -1,3 +1,5 @@
+from datetime import datetime
+from pytz import timezone
 from pathlib import Path
 import torch
 
@@ -22,7 +24,7 @@ class Config:
     model_name = available_models[0]
 
     # Train
-    optim = "AdamW"
+    optim = ["adamw_hf", "adamw_torch", "adamw_apex_fused", "adafactor"][1]
     loss = "MSE"
     valid_ratio = 0.1
     max_len = 512
@@ -35,6 +37,7 @@ class Config:
 
     # Defaults
     device = "cuda" if torch.cuda.is_available() else "cpu"
+    timestamp = datetime.now(timezone("Asia/Seoul")).strftime("%y%m%d%H%M")
     data_dir = Path("/data/AI4Code")  # Path("../input/AI4Code")
     log_dir = Path("/data/AI4Code/log")
     result_dir = Path("/data/AI4Code/result")

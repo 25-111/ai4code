@@ -1,11 +1,10 @@
 import torch.nn as nn
-import torch.nn.functional as F
 from torch.cuda.amp import GradScaler
 import transformers as tx
 
 
 def get_model(config):
-    # TODO: rename model_name to model_path for training on aze server
+    # TODO: rename model_name to model_path for training on msj server
     if config.model_name.startswith("bert"):
         tokenizer = tx.BertTokenizer.from_pretrained(
             config.model_name, do_lower_case=config.model_name.endswith("uncased")
@@ -31,7 +30,7 @@ def get_model(config):
             config.model_name, do_lower_case=config.model_name.endswith("uncased")
         )
         model = tx.AutoModel.from_pretrained(config.model_name)
-    return tokenizer, model.to(config.device)
+    return tokenizer, model
 
 
 class CodeRearranger(nn.Module):

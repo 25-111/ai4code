@@ -1,9 +1,8 @@
 import torch
-from torch.utils.data import DataLoader, Dataset
-from preprocess import get_features
+import torch.utils.data as dt
 
 
-class NotebookDataset(Dataset):
+class NotebookDataset(dt.Dataset):
     def __init__(self, df, max_len, max_len_md, fts, tokenizer):
         super().__init__()
         self.df = df.reset_index(drop=True)
@@ -31,12 +30,6 @@ class NotebookDataset(Dataset):
             padding="max_length",
             truncation=True,
         )
-        n_md = self.fts[row.id]["total_md"]
-        n_code = self.fts[row.id]["total_md"]
-        if n_md + n_code == 0:
-            fts = torch.FloatTensor([0])
-        else:
-            fts = torch.FloatTensor([n_md / (n_md + n_code)])
 
         ids = inputs["input_ids"]
         for x in code_inputs["input_ids"]:
@@ -63,45 +56,6 @@ class NotebookDataset(Dataset):
 
     def __len__(self):
         return self.df.shape[0]
-
-
-def get_loaders(df_train, df_train_md, df_valid, df_valid_md, tokenizer, config):
-    use_pin_mem = config.device.startswith("cuda")
-
-    fts_train, fts_valid = get_features(df_train), get_features(df_valid)
-
-    trainset = NotebookDataset(
-        df_train_md,
-        max_len=config.max_len,
-        max_len_md=config.max_len_md,
-        fts=fts_train,
-        tokenizer=tokenizer,
-    )
-    validset = NotebookDataset(
-        df_valid_md,
-        max_len=config.max_len,
-        max_len_md=config.max_len_md,
-        fts=fts_valid,
-        tokenizer=tokenizer,
-    )
-
-    trainloader = DataLoader(
-        trainset,
-        batch_size=config.batch_size,
-        shuffle=True,
-        num_workers=config.num_workers,
-        pin_memory=use_pin_mem,
-        drop_last=True,
-    )
-    validloader = DataLoader(
-        validset,
-        batch_size=config.batch_size,
-        shuffle=False,
-        num_workers=config.num_workers,
-        pin_memory=use_pin_mem,
-        drop_last=False,
-    )
-    return trainloader, validloader
 
 
 def read_data(data, config):
