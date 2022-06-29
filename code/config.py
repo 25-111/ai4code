@@ -38,9 +38,9 @@ class Config:
     # Defaults
     device = "cuda" if torch.cuda.is_available() else "cpu"
     timestamp = datetime.now(timezone("Asia/Seoul")).strftime("%y%m%d%H%M")
-    data_dir = Path("/data/AI4Code")  # Path("../input/AI4Code")
-    log_dir = Path("/data/AI4Code/log")
-    result_dir = Path("/data/AI4Code/result")
+    data_dir = Path("/data1/AI4Code")  # Path("../input/AI4Code")
+    log_dir = Path("/data1/AI4Code/log")
+    result_dir = Path("/data1/AI4Code/result")
     wandb_key = WANDB_KEY
 
 
