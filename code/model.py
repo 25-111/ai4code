@@ -1,6 +1,29 @@
+# -*- coding: utf-8 -*-
+# @Author: Yedarm Seong
+# @Date:   2022-06-27 03:31:28
+# @Last Modified by:   Yedarm Seong
+# @Last Modified time: 2022-07-07 03:40:45
+
+import torch
 import torch.nn as nn
 from torch.cuda.amp import GradScaler
+from torch.nn import DataParallel
 import transformers as tx
+
+
+class CodeRearranger(nn.Module):
+    def __init__(self, pretrained_model, device='cuda'):
+        super().__init__()
+        self.model = pretrained_model
+        self.fc = nn.Linear(768, 1)
+        self.dropout = nn.Dropout(0.2)
+
+    def forward(self, ids, mask):
+        x = self.model(ids, mask)[0]
+        x = self.dropout(x)
+        x = self.fc(x[:, 0, :])
+        x = torch.sigmoid(x)
+        return x
 
 
 def get_model(config):
@@ -34,20 +57,16 @@ def get_model(config):
     #         config.model_name, do_lower_case=config.model_name.endswith("uncased")
     #     )
     #     model = tx.AutoModel.from_pretrained(config.model_name)
+
     tokenizer = tx.AutoTokenizer.from_pretrained(
-        config.model_name, do_lower_case=config.model_name.endswith("uncased")
+        config.model_name,
+        do_lower_case=config.model_name.endswith("uncased")
     )
-    model = tx.AutoModel.from_pretrained(config.model_name)
+    model = CodeRearranger(
+        tx.AutoModel.from_pretrained(config.model_name),
+        config.device
+    )
+    model = DataParallel(model, device_ids=[0,1,2,3])
+    model.cuda()
+
     return tokenizer, model
-
-
-class CodeRearranger(nn.Module):
-    def __init__(self, model):
-        super().__init__()
-        self.model = model
-        self.fc = nn.Linear(769, 1)
-
-    def forward(self, ids, mask):
-        x = self.model(ids, mask)[0]
-        x = self.fc(x[:, 0, :])
-        return x

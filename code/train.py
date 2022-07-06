@@ -9,6 +9,11 @@ from preprocess import preprocess, get_features
 from dataset import NotebookDataset, read_data
 from model import get_model
 from config import Config, WandbConfig
+from torch.utils.data import DataLoader
+from trainer import Trainer
+from torch import optim
+from torch.nn import MSELoss
+from torch.cuda.amp import GradScaler
 
 
 def main():
@@ -16,24 +21,18 @@ def main():
     config = Config()
     config.mode = "train"
 
-    if config.wandb_key:
-        wandb_config = WandbConfig()
-        wandb.login(key=config.wandb_key)
-
-        run = wandb.init(
-            project="ai4code",
-            entity="nciaproject",
-            config=wandb_config,
-            dir=config.log_dir,
-        )
 
     # Loading Model
+    print("Loading Model..: Start")
     tokenizer, model = get_model(config)
-
+    print("Loading Model..: Done!")
     # Loading Data
     use_pin_mem = config.device.startswith("cuda")
 
-    df_train, df_train_md, df_valid, df_valid_md, df_orders = preprocess(config)
+    print("Loading Data..: Start")
+    df_train, df_train_md, df_valid, df_valid_md, df_orders = (
+        preprocess(config)
+    )
     fts_train, fts_valid = get_features(df_train), get_features(df_valid)
 
     trainset = NotebookDataset(
@@ -50,41 +49,38 @@ def main():
         fts=fts_valid,
         tokenizer=tokenizer,
     )
-    data_collator = tx.DataCollatorWithPadding(tokenizer=tokenizer)
 
-    # Setting Train
-    trainarg = tx.TrainingArguments(
-        output_dir=config.result_dir,
-        do_train=True,
-        do_predict=True,
-        evaluation_strategy="steps",
-        per_device_train_batch_size=config.batch_size,
-        learning_rate=config.lr,
-        num_train_epochs=config.num_epochs,
-        logging_dir=config.log_dir,
-        save_strategy="steps",
-        seed=config.seed,
-        dataloader_num_workers=config.num_workers,
-        load_best_model_at_end=True,
-        optim=config.optim,
-        report_to="wandb",
-        dataloader_pin_memory=use_pin_mem,
+    train_loader = DataLoader(
+        trainset, batch_size=config.batch_size, shuffle=True
     )
-    trainer = tx.Trainer(
-        model=model,
-        args=trainarg,
-        train_dataset=trainset,
-        eval_dataset=validset,
-        data_collator=data_collator,
-        tokenizer=tokenizer,
-        # callbacks=[tx.EarlyStoppingCallback(early_stopping_patience=3)],
+    valid_loader = DataLoader(
+        validset, batch_size=config.batch_size, shuffle=False
     )
+    print("Loading Data..: Done!")
+    
+    print("Setting hyperparameters..: Done!")
+    optimizer = optim.AdamW(model.parameters(), lr=config.lr)
+    loss_fn = MSELoss()
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(
+        optimizer=optimizer,
+        T_max=50,
+        eta_min=3e-5
+    )
+    print("Setting hyperparameters..: Done!")
 
     # Train
-    trainer.train()
+    trainer = Trainer(
+        config,
+        dataloaders=[train_loader, valid_loader],
+        optimizer=optimizer,
+        model=model,
+        loss_fn=loss_fn,
+        scheduler=scheduler,
+        scaler=GradScaler(),
+        device="cuda"
+    )
 
-    if config.wandb_key:
-        run.finish()
+    trainer.train(epochs=config.num_epochs)
 
 
 if __name__ == "__main__":

@@ -6,7 +6,6 @@ import torch
 # from kaggle_secrets import UserSecretsClient
 # user_secrets = UserSecretsClient()
 # wandb_key = user_secrets.get_secret("WANDB_API_KEY")
-WANDB_KEY = None
 # WANDB_KEY = "5f3589d7b951d748cc5a309b0b8c08aa7945ce52"
 
 
@@ -21,7 +20,7 @@ class Config:
         "roberta-large",
         "albert-base-v2",
     ]
-    model_name = available_models[0]
+    model_name = available_models[3]
 
     # Train
     optim = ["adamw_hf", "adamw_torch", "adamw_apex_fused", "adafactor"][1]
@@ -29,19 +28,17 @@ class Config:
     valid_ratio = 0.1
     max_len = 512
     max_len_md = 64
-    num_epochs = 2
+    num_epochs = 32
     num_workers = 8
-    batch_size = 32
+    batch_size = 64
     lr = 3e-4
-    seed = 1234
+    seed = 42
 
     # Defaults
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    device = "cuda"
     timestamp = datetime.now(timezone("Asia/Seoul")).strftime("%y%m%d%H%M")
-    data_dir = Path("/data1/AI4Code")  # Path("../input/AI4Code")
-    log_dir = Path("/data1/AI4Code/log")
-    result_dir = Path("/data1/AI4Code/result")
-    wandb_key = WANDB_KEY
+    data_dir = "/data1/AI4Code"  # Path("../input/AI4Code")
+    log_dir = "/data1/AI4Code/"
 
 
 class WandbConfig:

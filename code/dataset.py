@@ -2,6 +2,10 @@ import torch
 import torch.utils.data as dt
 
 
+def read_data(data, config):
+    return (d.to(config.device) for d in data[:-1]), data[-1].to(config.device)
+
+
 class NotebookDataset(dt.Dataset):
     def __init__(self, df, max_len, max_len_md, fts, tokenizer):
         super().__init__()
@@ -52,11 +56,18 @@ class NotebookDataset(dt.Dataset):
             ] * (self.max_len - len(mask))
         mask = torch.LongTensor(mask)
 
+        # ttids = inputs["token_type_ids"]
+        # for x in code_inputs["token_type_ids"]:
+        #     ttids.extend(x[:-1])
+        # ttids = ttids[: self.max_len]
+        # if len(ttids) != self.max_len:
+        #     ttids = ttids + [
+        #         self.tokenizer.pad_token_id,
+        #     ] * (self.max_len - len(ttids))
+        # ttids = torch.LongTensor(ttids)
+        # data = (ids, mask, torch.FloatTensor([row.pct_rank]))
+        # return read_data(data, config)
         return ids, mask, torch.FloatTensor([row.pct_rank])
 
     def __len__(self):
         return self.df.shape[0]
-
-
-def read_data(data, config):
-    return (d.to(config.device) for d in data[:-1]), data[-1].to(config.device)
