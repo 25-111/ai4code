@@ -29,7 +29,7 @@ class Config:
     max_len = 120
     num_epochs = 32
     num_workers = 8
-    batch_size = 64  # 128
+    batch_size = 128
     lr = 3e-4
     seed = 42
 

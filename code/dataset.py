@@ -20,12 +20,11 @@ class NotebookDataset(dt.Dataset):
 
         inputs = self.tokenizer.encode_plus(
             sample.source,
-            None,
             add_special_tokens=True,
-            max_length=self.max_len,
             padding="max_length",
-            return_token_type_ids=True,
             truncation=True,
+            return_token_type_ids=True,
+            max_length=self.max_len,
         )
         # code_inputs = self.tokenizer.batch_encode_plus(
         #     [str(x) for x in self.fts[sample.id]["codes"]],

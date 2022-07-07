@@ -58,9 +58,8 @@ def get_model(config):
     #     model = tx.AutoModel.from_pretrained(config.model_name)
 
     tokenizer = tx.AutoTokenizer.from_pretrained(
-        config.model_name, do_lower_case=config.model_name.endswith("uncased")
+        config.model_name, do_lower_case="uncased" in config.model_name
     )
     model = CodeRearranger(tx.AutoModel.from_pretrained(config.model_name))
     model = DataParallel(model, device_ids=[0, 1, 2, 3])
-    model.cuda()
-    return tokenizer, model
+    return tokenizer, model.to(config.device)
