@@ -23,22 +23,22 @@ class Config:
     model_name = available_models[3]
 
     # Train
-    optim = ["adamw_hf", "adamw_torch", "adamw_apex_fused", "adafactor"][1]
-    loss = "MSE"
+    optim = ["AdamW"][0]
+    loss = ["MSE"][0]
     valid_ratio = 0.1
-    max_len = 512
-    max_len_md = 64
+    max_len = 120
     num_epochs = 32
     num_workers = 8
-    batch_size = 64
+    batch_size = 128
     lr = 3e-4
     seed = 42
 
     # Defaults
-    device = "cuda"
-    timestamp = datetime.now(timezone("Asia/Seoul")).strftime("%y%m%d%H%M")
-    data_dir = "/data1/AI4Code"  # Path("../input/AI4Code")
-    log_dir = "/data1/AI4Code/"
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    timestamp = datetime.now(timezone("Asia/Seoul")).strftime("%y%m%d-%H%M")
+    trial_name = f"{timestamp}-{model_name}-{optim}-{loss}"
+    data_dir = Path("/data1/AI4Code/")  # Path("../input/AI4Code")
+    log_dir = Path("/data1/AI4Code/")
 
 
 class WandbConfig:

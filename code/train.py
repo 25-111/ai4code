@@ -1,19 +1,12 @@
-import sys, warnings
-import wandb
-import numpy as np
-import torch
-import transformers as tx
-from preprocess import preprocess, get_features
+from torch.utils.data import DataLoader
 
 # TODO: read_data 처리 (아마 Dataset에서 처리하는 것이 나을 듯)
-from dataset import NotebookDataset, read_data
+from preprocess import preprocess
+from dataset import NotebookDataset
 from model import get_model
-from config import Config, WandbConfig
-from torch.utils.data import DataLoader
 from trainer import Trainer
-from torch import optim
-from torch.nn import MSELoss
-from torch.cuda.amp import GradScaler
+from train_utils import yield_optimizer, yield_criterion, yield_scheduler, yield_scaler
+from config import Config
 
 
 def main():
@@ -21,63 +14,47 @@ def main():
     config = Config()
     config.mode = "train"
 
-
     # Loading Model
     print("Loading Model..: Start")
     tokenizer, model = get_model(config)
     print("Loading Model..: Done!")
-    # Loading Data
-    use_pin_mem = config.device.startswith("cuda")
 
+    # Loading Data
     print("Loading Data..: Start")
-    df_train, df_train_md, df_valid, df_valid_md, df_orders = (
-        preprocess(config)
-    )
-    fts_train, fts_valid = get_features(df_train), get_features(df_valid)
+    df_train_md, df_valid_md, df_orders = preprocess(config)
 
     trainset = NotebookDataset(
-        df_train_md,
-        max_len=config.max_len,
-        max_len_md=config.max_len_md,
-        fts=fts_train,
-        tokenizer=tokenizer,
+        df_train_md, max_len=config.max_len, tokenizer=tokenizer, config=config
     )
     validset = NotebookDataset(
-        df_valid_md,
-        max_len=config.max_len,
-        max_len_md=config.max_len_md,
-        fts=fts_valid,
-        tokenizer=tokenizer,
+        df_valid_md, max_len=config.max_len, tokenizer=tokenizer, config=config
     )
 
+    use_pin_mem = config.device.startswith("cuda")
     train_loader = DataLoader(
-        trainset, batch_size=config.batch_size, shuffle=True
+        trainset, batch_size=config.batch_size, shuffle=True, pin_memory=use_pin_mem
     )
     valid_loader = DataLoader(
-        validset, batch_size=config.batch_size, shuffle=False
+        validset, batch_size=config.batch_size, shuffle=False, pin_memory=use_pin_mem
     )
     print("Loading Data..: Done!")
-    
+
     print("Setting hyperparameters..: Done!")
-    optimizer = optim.AdamW(model.parameters(), lr=config.lr)
-    loss_fn = MSELoss()
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(
-        optimizer=optimizer,
-        T_max=50,
-        eta_min=3e-5
-    )
+    optimizer = yield_optimizer(model, config)
+    criterion = yield_criterion(config)
+    scheduler = yield_scheduler(optimizer)
+    scaler = yield_scaler()
     print("Setting hyperparameters..: Done!")
 
     # Train
     trainer = Trainer(
         config,
         dataloaders=[train_loader, valid_loader],
-        optimizer=optimizer,
         model=model,
-        loss_fn=loss_fn,
+        optimizer=optimizer,
+        criterion=criterion,
         scheduler=scheduler,
-        scaler=GradScaler(),
-        device="cuda"
+        scaler=scaler,
     )
 
     trainer.train(epochs=config.num_epochs)

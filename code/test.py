@@ -21,7 +21,6 @@ def main():
     testset = NotebookDataset(
         df_test_md,
         max_len=config.max_len,
-        max_len_md=config.max_len_md,
         fts=fts_test,
         tokenizer=tokenizer,
     )

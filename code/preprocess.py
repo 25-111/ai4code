@@ -18,6 +18,7 @@ def preprocess(config):
             .swaplevel()
             .sort_index(level="id", sort_remaining=False)
         )
+        print(config.mode)
 
         if config.mode == "train":
             df_orders = pd.read_csv(
@@ -70,7 +71,7 @@ def preprocess(config):
             df_train_md.to_csv(config.data_dir / "train_md.csv", index=False)
             df_valid.to_csv(config.data_dir / "valid.csv", index=False)
             df_valid_md.to_csv(config.data_dir / "valid_md.csv", index=False)
-            return df_train, df_train_md, df_valid, df_valid_md, df_orders
+            return df_train_md, df_valid_md, df_orders
 
         elif config.mode == "test":
             df_test = (
@@ -91,7 +92,7 @@ def preprocess(config):
 
             df_test.to_csv(config.data_dir / "test.csv", index=False)
             df_test_md.to_csv(config.data_dir / "test_md.csv", index=False)
-            return df_test, df_test_md
+            return df_test_md
 
     else:
         if config.mode == "train":
@@ -105,12 +106,12 @@ def preprocess(config):
             df_train_md = pd.read_csv(config.data_dir / "train_md.csv")
             df_valid = pd.read_csv(config.data_dir / "valid.csv")
             df_valid_md = pd.read_csv(config.data_dir / "valid_md.csv")
-            return df_train, df_train_md, df_valid, df_valid_md, df_orders
+            return df_train_md, df_valid_md, df_orders
 
         elif config.mode == "test":
             df_test = pd.read_csv(config.data_dir / "test.csv")
             df_test_md = pd.read_csv(config.data_dir / "test_md.csv")
-            return df_test, df_test_md
+            return df_test_md
 
 
 def read_notebook(path):
