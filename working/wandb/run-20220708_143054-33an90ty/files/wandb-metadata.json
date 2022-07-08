@@ -1,0 +1,24 @@
+{
+    "os": "Linux-4.15.0-177-generic-x86_64-with-debian-bullseye-sid",
+    "python": "3.7.12",
+    "heartbeatAt": "2022-07-08T05:30:57.176712",
+    "startedAt": "2022-07-08T05:30:54.659692",
+    "docker": null,
+    "gpu": "Tesla T4",
+    "gpu_count": 4,
+    "cpu_count": 56,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "code/train.py",
+    "codePath": "code/train.py",
+    "git": {
+        "remote": "https://github.com/25-111/ai4code.git",
+        "commit": "e6dadb7fa577d9a3087bdee291a1d99ea256cfb8"
+    },
+    "email": "jhlee63@outlook.com",
+    "root": "/home/doononi/ai4code",
+    "host": "c032a6537433",
+    "username": "doononi",
+    "executable": "/home/doononi/.cache/pypoetry/virtualenvs/ai4code-EsLDQqrx-py3.7/bin/python3"
+}

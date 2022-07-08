@@ -37,8 +37,8 @@ class Config:
     device = "cuda" if torch.cuda.is_available() else "cpu"
     timestamp = datetime.now(timezone("Asia/Seoul")).strftime("%y%m%d-%H%M")
     trial_name = f"{timestamp}-{model_name}-{optim}-{loss}"
-    data_dir = Path("/data1/AI4Code/")  # Path("../input/AI4Code")
-    log_dir = Path("/data1/AI4Code/")
+    data_dir = Path("../input/AI4Code/")
+    log_dir = Path("./working/")
 
 
 class WandbConfig:
