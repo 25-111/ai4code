@@ -1,3 +1,10 @@
+# Working directory
+working/
+input/
+
+# Wandb
+wandb/
+
 # Temporal files
 tmp*
 

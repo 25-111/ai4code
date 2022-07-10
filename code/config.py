@@ -26,8 +26,8 @@ class Config:
     optim = ["AdamW"][0]
     loss = ["MSE"][0]
     valid_ratio = 0.1
-    max_len = 120
-    num_epochs = 32
+    max_len = 256
+    num_epochs = 2
     num_workers = 8
     batch_size = 128
     lr = 3e-4

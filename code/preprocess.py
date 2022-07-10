@@ -1,4 +1,4 @@
-import os
+from os import path as osp
 from tqdm import tqdm
 import pandas as pd
 from sklearn.model_selection import GroupShuffleSplit
@@ -6,7 +6,7 @@ import numpy as np
 
 
 def preprocess(config):
-    if not os.path.exists(config.data_dir / f"{config.mode}.csv"):
+    if not osp.exists(config.data_dir / f"{config.mode}.csv"):
         data_pth = list((config.data_dir / config.mode).glob("*.json"))
         notebooks = [
             read_notebook(path) for path in tqdm(data_pth, desc="Reading notebooks")
@@ -67,10 +67,10 @@ def preprocess(config):
                 drop=True
             )
 
-            df_train.to_csv(config.data_dir / "train.csv", index=False)
-            df_train_md.to_csv(config.data_dir / "train_md.csv", index=False)
-            df_valid.to_csv(config.data_dir / "valid.csv", index=False)
-            df_valid_md.to_csv(config.data_dir / "valid_md.csv", index=False)
+            df_train.dropna().to_csv(config.data_dir / "train.csv", index=False)
+            df_train_md.dropna().to_csv(config.data_dir / "train_md.csv", index=False)
+            df_valid.dropna().to_csv(config.data_dir / "valid.csv", index=False)
+            df_valid_md.dropna().to_csv(config.data_dir / "valid_md.csv", index=False)
             return df_train_md, df_valid_md, df_orders
 
         elif config.mode == "test":
@@ -79,20 +79,22 @@ def preprocess(config):
                 .set_index("id", append=True)
                 .swaplevel()
                 .sort_index(level="id", sort_remaining=False)
-            )
+            ).reset_index()
 
             df_test["rank"] = df_test.groupby(["id", "cell_type"]).cumcount()
             df_test["pred"] = df_test.groupby(["id", "cell_type"])["rank"].rank(
                 pct=True
             )
+            df_test["pct_rank"] = 0
 
             df_test_md = df_test[df_test["cell_type"] == "markdown"].reset_index(
                 drop=True
             )
 
-            df_test.to_csv(config.data_dir / "test.csv", index=False)
-            df_test_md.to_csv(config.data_dir / "test_md.csv", index=False)
-            return df_test_md
+            df_test.dropna().to_csv(config.data_dir / "test.csv", index=False)
+            df_test_md.dropna().to_csv(config.data_dir / "test_md.csv", index=False)
+
+            return df_test, df_test_md
 
     else:
         if config.mode == "train":
@@ -111,7 +113,7 @@ def preprocess(config):
         elif config.mode == "test":
             df_test = pd.read_csv(config.data_dir / "test.csv")
             df_test_md = pd.read_csv(config.data_dir / "test_md.csv")
-            return df_test_md
+            return df_test, df_test_md
 
 
 def read_notebook(path):

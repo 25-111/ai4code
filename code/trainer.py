@@ -2,7 +2,7 @@
 # @Author: Yedarm Seong
 # @Date:   2022-07-06 04:27:28
 # @Last Modified by:   Yedarm Seong
-# @Last Modified time: 2022-07-07 04:04:27
+# @Last Modified time: 2022-07-11 03:58:16
 
 import os
 from os import path as osp
@@ -42,11 +42,11 @@ class Trainer:
         train_pbar = tqdm(enumerate(self.train_loader), total=len(self.train_loader))
         train_preds, train_targets = [], []
 
-        for bnum, cache in train_pbar:
-            ids = self._to_device(cache[0])
-            mask = self._to_device(cache[1])
-            ttis = self._to_device(cache[2])
-            targets = self._to_device(cache[3])
+        for bnum, data in train_pbar:
+            ids = data[0].to(self.device)
+            mask = data[1].to(self.device)
+            ttis = data[2].to(self.device)
+            targets = data[-1].to(self.device)
 
             with autocast(enabled=True):
                 outputs = self.model(ids=ids, mask=mask, token_type_ids=ttis)
@@ -58,10 +58,12 @@ class Trainer:
 
                 train_pbar.set_description(f"train loss: {loss_item:.4f}")
 
-                self.scaler.scale(loss).backward()
-                self.scaler.step(self.optimizer)
-                self.scaler.update()
+                # self.scaler.scale(loss).backward()
+                # self.scaler.step(self.optimizer)
+                # self.scaler.update()
+                loss.backward()
                 self.optimizer.zero_grad()
+                self.optimizer.step()
                 self.scheduler.step()
 
             train_targets.extend(targets.cpu().detach().numpy().tolist())
@@ -83,11 +85,11 @@ class Trainer:
         valid_pbar = tqdm(enumerate(self.valid_loader), total=len(self.valid_loader))
         valid_preds, valid_targets = [], []
 
-        for idx, cache in valid_pbar:
-            ids = self._to_device(cache[0])
-            mask = self._to_device(cache[1])
-            ttis = self._to_device(cache[2])
-            targets = self._to_device(cache[3])
+        for bnum, data in valid_pbar:
+            ids = data[0].to(self.device)
+            mask = data[1].to(self.device)
+            ttis = data[2].to(self.device)
+            targets = data[-1].to(self.device)
 
             outputs = self.model(ids=ids, mask=mask, token_type_ids=ttis).view(-1)
             valid_loss = self.criterion(outputs, targets)
@@ -108,12 +110,11 @@ class Trainer:
 
     def train(
         self,
-        epochs: int = 10,
-        output_dir: str = "/kaggle/working/",
-        custom_name: str = "model.pth",
+        epochs: int=10,
+        output_dir: str="./working/",
     ):
         config, wandb_config = Config(), WandbConfig()
-        self.run = wandb.init(
+        wandb.init(
             project="ai4code",
             entity="25111",
             name=config.trial_name,
@@ -142,10 +143,12 @@ class Trainer:
 
             if valid_mse < best_loss:
                 best_loss = valid_mse
-                self.save_model(output_dir, f"model_{epoch}.pth")
+                save_path = osp.join(output_dir, config.trial_name)
+                self.save_model(save_path, f"model_{epoch}.pth")
                 print(f"Saved model with val_loss: {best_loss:.4f}")
+                wandb.save(osp.join(save_path, f"model_{epoch}.pth"))
 
-        self.run.finish()
+        wandb.run.finish()
 
     def save_model(self, path, name, verbose=False):
         """
@@ -157,12 +160,10 @@ class Trainer:
         except:
             print("Errors encountered while making the output directory")
 
-        torch.save(self.model.state_dict(), osp.join(path, name))
+        torch.save(self.model.module.state_dict(), osp.join(path, name))
         if verbose:
             print(f"Model Saved at: {osp.join(path, name)}")
 
-    def _to_device(self, x):
-        return x.to(self.device)
 
     def wandb_log(self, **kwargs):
         """

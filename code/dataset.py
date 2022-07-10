@@ -1,12 +1,12 @@
 import torch
-import torch.utils.data as dt
+from torch.utils.data import Dataset
 
 
 def read_data(data, config):
     return (d.to(config.device) for d in data[:-1]), data[-1].to(config.device)
 
 
-class NotebookDataset(dt.Dataset):
+class NotebookDataset(Dataset):
     def __init__(self, df, max_len, tokenizer, config):
         super().__init__()
         self.df = df.reset_index(drop=True)

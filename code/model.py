@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: Yedarm Seong
 # @Date:   2022-06-27 03:31:28
-# @Last Modified by: Joonhun Lee
-# @Last Modified time: 2022-07-07 15:22:50
+# @Last Modified by:   Yedarm Seong
+# @Last Modified time: 2022-07-11 02:06:33
 
 import torch
 import torch.nn as nn
@@ -18,10 +18,15 @@ class CodeRearranger(nn.Module):
         self.fc = nn.Linear(768, 1)
 
     def forward(self, ids, mask, token_type_ids):
-        _, x = self.model(ids, mask, token_type_ids=token_type_ids, return_dict=False)
+        _, x = self.model(
+            ids,
+            mask,
+            token_type_ids=token_type_ids,
+            return_dict=False
+        )
         x = self.dropout(x)
         x = self.fc(x)
-        y = torch.sigmoid(x)  # NOTE 최종은 y로 해줭
+        y = torch.sigmoid(x)
         return y
 
 
@@ -58,8 +63,11 @@ def get_model(config):
     #     model = tx.AutoModel.from_pretrained(config.model_name)
 
     tokenizer = tx.AutoTokenizer.from_pretrained(
-        config.model_name, do_lower_case="uncased" in config.model_name
+        config.model_name,
+        do_lower_case="uncased" in config.model_name,
+        is_split_into_words=True
     )
     model = CodeRearranger(tx.AutoModel.from_pretrained(config.model_name))
     model = DataParallel(model, device_ids=[0, 1, 2, 3])
+    
     return tokenizer, model.to(config.device)
