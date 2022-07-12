@@ -2,7 +2,7 @@
 # @Author: Yedarm Seong
 # @Date:   2022-07-06 04:27:28
 # @Last Modified by:   Yedarm Seong
-# @Last Modified time: 2022-07-12 15:25:01
+# @Last Modified time: 2022-07-12 15:51:35
 
 import os
 from os import path as osp
@@ -136,7 +136,9 @@ class Trainer:
 
             if valid_mse < best_loss:
                 best_loss = valid_mse
-                save_path = self.config.log_dir / self.config.trial_name
+                save_path = (
+                    self.config.log_dir / "models" / self.config.trial_name
+                )
                 self.save_model(save_path, f"ckpt_{epoch:03d}.pth")
                 print(f"Saved model with val_loss: {best_loss:.4f}")
 
