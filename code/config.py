@@ -11,7 +11,7 @@ class Config:
     working_dir = Path("../working/")
 
     # Model
-    prev_model = Path("codebert-base.pth")
+    prev_model = None  # Path("0712-1900-from(codebert-base).pth")
 
     # Train
     optim = ["AdamW"][0]
@@ -26,7 +26,11 @@ class Config:
 
     # Log
     timestamp = datetime.now(timezone("Asia/Seoul")).strftime("%m%d-%H%M")
-    trial_name = f"{timestamp}-from({str(prev_model)[:9]})"
+    trial_name = (
+        f"{timestamp}-from({str(prev_model)[:9]})"
+        if not prev_model
+        else f"{timestamp}-from(codebert-base)"
+    )
 
 
 class WandbConfig:

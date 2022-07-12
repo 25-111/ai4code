@@ -60,7 +60,6 @@ def main():
         scaler=scaler,
         logger=run,
     )
-    trainer.save_model(".", "codebert.pth")
 
     trainer.train(epochs=config.num_epochs)
     print("Training..: Done!")
@@ -72,9 +71,9 @@ def main():
     artifact_dataset.add_file(
         config.input_dir / "train_md.csv", name="input/train_md.csv"
     )
-    artifact_dataset.add_file(config.input_dir / "test.csv", name="input/test.csv")
+    artifact_dataset.add_file(config.input_dir / "valid.csv", name="input/valid.csv")
     artifact_dataset.add_file(
-        config.input_dir / "test_md.csv", name="input/test_md.csv"
+        config.input_dir / "valid_md.csv", name="input/valid_md.csv"
     )
     wandb.run.log_artifact(artifact_dataset)
 
