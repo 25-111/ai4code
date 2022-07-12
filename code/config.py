@@ -11,8 +11,7 @@ class Config:
     working_dir = Path("../working/")
 
     # Model
-    base_model = ["codebert", "codet5"][0]
-    prev_model = None  # Path("0712-1900-codebert-from(0712-1700).pth")
+    prev_model = Path("codebert-base/codebert-base.pth")
 
     # Train
     optim = ["AdamW"][0]
@@ -27,9 +26,10 @@ class Config:
 
     # Log
     timestamp = datetime.now(timezone("Asia/Seoul")).strftime("%m%d-%H%M")
+    base_model = "codebert" if "codebert" in str(prev_model) else "codet5"
     trial_name = (
         f"{timestamp}-{base_model}-from({str(prev_model)[:9]})"
-        if prev_model is not None
+        if not str(prev_model).endswith("base.pth")
         else f"{timestamp}-{base_model}-from({base_model}-base)"
     )
 

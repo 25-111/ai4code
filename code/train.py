@@ -23,6 +23,7 @@ def main():
 
     print("Loading Data..: Start")
     df_train_md, df_valid_md, df_orders = preprocess(config)
+    df_train_md, df_valid_md = df_train_md[:1000], df_valid_md[:1000]
     trainset = NotebookDataset(
         df_train_md, max_len=config.max_len, tokenizer=tokenizer, config=config
     )
@@ -76,7 +77,6 @@ def main():
     print("Training..: Done!")
 
     print("Logging to WandB..: Start")
-    # no upload unless the dataset changes
     artifact_dataset = wandb.Artifact("dataset", type="dataset")
     artifact_dataset.add_file(
         config.input_dir / "train.csv", name="input/train.csv"
@@ -92,11 +92,10 @@ def main():
     )
     wandb.run.log_artifact(artifact_dataset)
 
-    # TBD: Should we upload all checkpoint models?
-    artifact_model = wandb.Artifact("model", type="model")
+    artifact_model = wandb.Artifact(config.base_model, type="model")
     artifact_model.add_dir(
         config.working_dir / config.base_model / config.trial_name,
-        name=f"{config.base_model}/{config.trial_name}",
+        name=f"{config.trial_name}",
     )
     wandb.run.log_artifact(artifact_model)
 
