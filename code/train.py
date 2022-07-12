@@ -4,7 +4,12 @@ from dataset import NotebookDataset
 from model import get_model
 from preprocess import preprocess
 from torch.utils.data import DataLoader
-from train_utils import yield_criterion, yield_optimizer, yield_scaler, yield_scheduler
+from train_utils import (
+    yield_criterion,
+    yield_optimizer,
+    yield_scaler,
+    yield_scheduler,
+)
 from trainer import Trainer
 
 
@@ -27,10 +32,16 @@ def main():
 
     use_pin_mem = config.device.startswith("cuda")
     train_loader = DataLoader(
-        trainset, batch_size=config.batch_size, shuffle=True, pin_memory=use_pin_mem
+        trainset,
+        batch_size=config.batch_size,
+        shuffle=True,
+        pin_memory=use_pin_mem,
     )
     valid_loader = DataLoader(
-        validset, batch_size=config.batch_size, shuffle=False, pin_memory=use_pin_mem
+        validset,
+        batch_size=config.batch_size,
+        shuffle=False,
+        pin_memory=use_pin_mem,
     )
     print("Loading Data..: Done!")
 
@@ -67,11 +78,15 @@ def main():
     print("Logging to WandB..: Start")
     # no upload unless the dataset changes
     artifact_dataset = wandb.Artifact("dataset", type="dataset")
-    artifact_dataset.add_file(config.input_dir / "train.csv", name="input/train.csv")
+    artifact_dataset.add_file(
+        config.input_dir / "train.csv", name="input/train.csv"
+    )
     artifact_dataset.add_file(
         config.input_dir / "train_md.csv", name="input/train_md.csv"
     )
-    artifact_dataset.add_file(config.input_dir / "valid.csv", name="input/valid.csv")
+    artifact_dataset.add_file(
+        config.input_dir / "valid.csv", name="input/valid.csv"
+    )
     artifact_dataset.add_file(
         config.input_dir / "valid_md.csv", name="input/valid_md.csv"
     )

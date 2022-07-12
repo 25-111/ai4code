@@ -10,7 +10,8 @@ def preprocess(config):
     if not osp.exists(config.input_dir / f"{config.mode}.csv"):
         data_pth = list((config.input_dir / config.mode).glob("*.json"))
         notebooks = [
-            read_notebook(path) for path in tqdm(data_pth, desc="Reading notebooks")
+            read_notebook(path)
+            for path in tqdm(data_pth, desc="Reading notebooks")
         ]
 
         df = (
@@ -34,7 +35,10 @@ def preprocess(config):
             )
 
             ranks = {
-                id_: {"cell_id": cell_id, "rank": get_ranks(cell_order, cell_id)}
+                id_: {
+                    "cell_id": cell_id,
+                    "rank": get_ranks(cell_order, cell_id),
+                }
                 for id_, cell_order, cell_id in df_orders_.itertuples()
             }
             df_ranks = (
@@ -52,26 +56,40 @@ def preprocess(config):
                 .merge(df_ranks, on=["id", "cell_id"])
                 .merge(df_ancestors, on=["id"])
             )
-            df["pct_rank"] = df["rank"] / df.groupby("id")["cell_id"].transform("count")
+            df["pct_rank"] = df["rank"] / df.groupby("id")[
+                "cell_id"
+            ].transform("count")
 
             splitter = GroupShuffleSplit(
-                n_splits=1, test_size=config.valid_ratio, random_state=config.seed
+                n_splits=1,
+                test_size=config.valid_ratio,
+                random_state=config.seed,
             )
-            idx_train, idx_valid = next(splitter.split(df, groups=df["ancestor_id"]))
+            idx_train, idx_valid = next(
+                splitter.split(df, groups=df["ancestor_id"])
+            )
             df_train = df.loc[idx_train].reset_index(drop=True)
             df_valid = df.loc[idx_valid].reset_index(drop=True)
 
-            df_train_md = df_train[df_train["cell_type"] == "markdown"].reset_index(
-                drop=True
-            )
-            df_valid_md = df_valid[df_valid["cell_type"] == "markdown"].reset_index(
-                drop=True
-            )
+            df_train_md = df_train[
+                df_train["cell_type"] == "markdown"
+            ].reset_index(drop=True)
+            df_valid_md = df_valid[
+                df_valid["cell_type"] == "markdown"
+            ].reset_index(drop=True)
 
-            df_train.dropna().to_csv(config.input_dir / "train.csv", index=False)
-            df_train_md.dropna().to_csv(config.input_dir / "train_md.csv", index=False)
-            df_valid.dropna().to_csv(config.input_dir / "valid.csv", index=False)
-            df_valid_md.dropna().to_csv(config.input_dir / "valid_md.csv", index=False)
+            df_train.dropna().to_csv(
+                config.input_dir / "train.csv", index=False
+            )
+            df_train_md.dropna().to_csv(
+                config.input_dir / "train_md.csv", index=False
+            )
+            df_valid.dropna().to_csv(
+                config.input_dir / "valid.csv", index=False
+            )
+            df_valid_md.dropna().to_csv(
+                config.input_dir / "valid_md.csv", index=False
+            )
             return df_train_md, df_valid_md, df_orders
 
         elif config.mode == "test":
@@ -83,17 +101,19 @@ def preprocess(config):
             ).reset_index()
 
             df_test["rank"] = df_test.groupby(["id", "cell_type"]).cumcount()
-            df_test["pred"] = df_test.groupby(["id", "cell_type"])["rank"].rank(
-                pct=True
-            )
+            df_test["pred"] = df_test.groupby(["id", "cell_type"])[
+                "rank"
+            ].rank(pct=True)
             df_test["pct_rank"] = 0
 
-            df_test_md = df_test[df_test["cell_type"] == "markdown"].reset_index(
-                drop=True
-            )
+            df_test_md = df_test[
+                df_test["cell_type"] == "markdown"
+            ].reset_index(drop=True)
 
             df_test.dropna().to_csv(config.input_dir / "test.csv", index=False)
-            df_test_md.dropna().to_csv(config.input_dir / "test_md.csv", index=False)
+            df_test_md.dropna().to_csv(
+                config.input_dir / "test_md.csv", index=False
+            )
 
             return df_test, df_test_md
 
@@ -148,18 +168,3 @@ def sample_cells(cells, sample_size=20):
         if cells[-1] not in samples:
             samples[-1] = cells[-1]
         return samples
-
-
-def get_features(df):
-    features = dict()
-    df = df.sort_values("rank").reset_index(drop=True)
-    for idx, sub_df in tqdm(df.groupby("id")):
-        features[idx] = dict()
-        total_md = sub_df[sub_df.cell_type == "markdown"].shape[0]
-        code_sub_df = sub_df[sub_df.cell_type == "code"]
-        total_code = code_sub_df.shape[0]
-        codes = sample_cells(code_sub_df.source.values)
-        features[idx]["total_code"] = total_code
-        features[idx]["total_md"] = total_md
-        features[idx]["codes"] = codes
-    return features

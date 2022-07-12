@@ -11,7 +11,6 @@ class NotebookDataset(Dataset):
         super().__init__()
         self.df = df.reset_index(drop=True)
         self.max_len = max_len
-        # self.fts = fts
         self.tokenizer = tokenizer
         self.config = config
 
@@ -26,13 +25,6 @@ class NotebookDataset(Dataset):
             return_token_type_ids=True,
             max_length=self.max_len,
         )
-        # code_inputs = self.tokenizer.batch_encode_plus(
-        #     [str(x) for x in self.fts[sample.id]["codes"]],
-        #     add_special_tokens=True,
-        #     max_length=23,
-        #     padding="max_length",
-        #     truncation=True,
-        # )
 
         ids = torch.LongTensor(inputs["input_ids"])
         mask = torch.LongTensor(inputs["attention_mask"])

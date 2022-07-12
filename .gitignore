@@ -1,6 +1,7 @@
 # Working files
 input/
 working/
+output/
 
 # Temporal files
 tmp*
@@ -161,3 +162,6 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# VS code settings
+.vscode

@@ -1,16 +1,14 @@
-import argparse
-
 import numpy as np
 import torch
 from config import Config
 from dataset import NotebookDataset
 from model import get_model
-from preprocess import get_features, preprocess
+from preprocess import preprocess
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 
-def main(args):
+def main():
     config = Config()
     config.mode = "test"
 
@@ -48,7 +46,9 @@ def main(args):
     )
     df_submission.rename(columns={"cell_id": "cell_order"}, inplace=True)
 
-    df_submission.to_csv(f"output/submission_{args.timestamp}.csv", index=False)
+    df_submission.to_csv(
+        f"output/submission_{config.timestamp}.csv", index=False
+    )
     print("Creating submission..: Done!")
 
 
@@ -74,9 +74,4 @@ def test(model, dataloader, config):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--trial-name", "-tn", type=str)
-    parser.add_argument("--epoch-num", "-en", type=int, default=0)
-    args = parser.parse_args()
-
-    main(args)
+    main()

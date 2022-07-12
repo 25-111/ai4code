@@ -1,5 +1,3 @@
-from os import path as osp
-
 import torch
 import torch.nn as nn
 from torch.nn import DataParallel
@@ -15,7 +13,9 @@ class CodeRearranger(nn.Module):
         self.fc = nn.Linear(768, 1)
 
     def forward(self, ids, mask, token_type_ids):
-        _, x = self.model(ids, mask, token_type_ids=token_type_ids, return_dict=False)
+        _, x = self.model(
+            ids, mask, token_type_ids=token_type_ids, return_dict=False
+        )
         x = self.dropout(x)
         x = self.fc(x)
         y = torch.sigmoid(x)
@@ -28,7 +28,9 @@ def get_model(config):
         do_lower_case=False,  # "uncased" in config.prev_model
         is_split_into_words=True,
     )
-    model = CodeRearranger(tx.AutoModel.from_pretrained("microsoft/codebert-base"))
+    model = CodeRearranger(
+        tx.AutoModel.from_pretrained("microsoft/codebert-base")
+    )
 
     try:
         model.load_state_dict(
