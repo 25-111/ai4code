@@ -25,7 +25,7 @@ class CodeRearranger(nn.Module):
 def get_model(config):
     model_path = (
         "Salesforce/codet5-base"
-        if config.basemodel == "codet5"
+        if config.base_model == "codet5"
         else "microsoft/codebert-base"
     )
 
@@ -38,11 +38,11 @@ def get_model(config):
 
     try:
         model.load_state_dict(
-            torch.load(config.working_dir / config.basemodel / config.prev_model)
+            torch.load(config.working_dir / config.base_model / config.prev_model)
         )
     except:
         print(
-            f"There is no {config.prev_model}, use base {config.basemodel} instead"
+            f"There is no {config.prev_model}, use base {config.base_model} instead"
         )
 
     model = DataParallel(model, device_ids=[0, 1, 2, 3]).to(config.device)

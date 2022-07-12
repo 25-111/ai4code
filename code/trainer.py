@@ -140,7 +140,7 @@ class Trainer:
             if valid_mse < best_loss:
                 best_loss = valid_mse
                 save_path = (
-                    self.config.working_dir / "models" / self.config.trial_name
+                    self.config.working_dir / config.base_model / self.config.trial_name
                 )
                 self.save_model(save_path, f"ckpt_{epoch:03d}.pth")
                 print(f"Saved model with val_loss: {best_loss:.4f}")
