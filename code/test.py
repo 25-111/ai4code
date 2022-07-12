@@ -21,6 +21,7 @@ def main():
     model.load_state_dict(torch.load("../working/220711-0122-microsoft/codebert-base-AdamW-MSE/model_0.pth"))
     df_test, df_test_md = preprocess(config)
 
+    print("Loading Data..: Start")
     testset = NotebookDataset(
         df_test_md, max_len=config.max_len, tokenizer=tokenizer, config=config
     )
@@ -31,8 +32,13 @@ def main():
         num_workers=config.num_workers,
         drop_last=False,
     )
+    print("Loading Data..: Done!")
 
+    print("Testing..: Start!")
     _, y_test = test(model, testloader, config)
+    print("Testing..: Done!")
+
+    print("Creating submission..: Start!")
     df_test.loc[df_test["cell_type"] == "markdown", "pred"] = y_test
 
     df_submission = (
@@ -47,6 +53,7 @@ def main():
         f"submission_{config.timestamp}.csv",
         index=False,
     )
+    print("Creating submission..: Done!")
 
 
 def test(model, dataloader, config):

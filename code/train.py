@@ -1,17 +1,17 @@
 from torch.utils.data import DataLoader
+import wandb
 
-# TODO: read_data 처리 (아마 Dataset에서 처리하는 것이 나을 듯)
 from preprocess import preprocess
 from dataset import NotebookDataset
 from model import get_model
 from trainer import Trainer
 from train_utils import yield_optimizer, yield_criterion, yield_scheduler, yield_scaler
-from config import Config
+from config import Config, WandbConfig
 
 
 def main():
     # Configuration
-    config = Config()
+    config, wandb_config = Config(), WandbConfig()
     config.mode = "train"
 
     # Loading Model
@@ -22,9 +22,9 @@ def main():
     # Loading Data
     print("Loading Data..: Start")
     df_train_md, df_valid_md, df_orders = preprocess(config)
-
+    df_valid_md = df_valid_md[:1000]
     trainset = NotebookDataset(
-        df_train_md, max_len=config.max_len, tokenizer=tokenizer, config=config
+        df_valid_md, max_len=config.max_len, tokenizer=tokenizer, config=config
     )
     validset = NotebookDataset(
         df_valid_md, max_len=config.max_len, tokenizer=tokenizer, config=config
@@ -46,6 +46,14 @@ def main():
     scaler = yield_scaler()
     print("Setting hyperparameters..: Done!")
 
+    logger = wandb.init(
+        project="ai4code",
+        entity="25111",
+        name=config.trial_name,
+        config=wandb_config,
+        dir=config.log_dir,
+    )
+
     # Train
     trainer = Trainer(
         config,
@@ -55,10 +63,33 @@ def main():
         criterion=criterion,
         scheduler=scheduler,
         scaler=scaler,
+        logger=logger
     )
 
     trainer.train(epochs=config.num_epochs)
 
+    artifact_dataset = wandb.Artifact("ai4code-dataset", type="dataset")
+    artifact_dataset.add_file(
+        "../input/AI4Code/train.csv", name="input/train.csv"
+    )
+    artifact_dataset.add_file(
+        "../input/AI4Code/train_md.csv", name="input/train_md.csv"
+    )
+    artifact_dataset.add_file(
+        "../input/AI4Code/test.csv", name="input/test.csv"
+    )
+    artifact_dataset.add_file(
+        "../input/AI4Code/test_md.csv", name="input/test_md.csv"
+    )
+    wandb.run.log_artifact(artifact_dataset)
+
+    artifact_model = wandb.Artifact("ai4code-model", type="model")
+    artifact_model.add_dir(
+        f"{wandb.run.dir}/{config.trial_name}", name="models"
+    )
+    wandb.run.log_artifact(artifact_model)
+
+    wandb.run.finish()
 
 if __name__ == "__main__":
     main()

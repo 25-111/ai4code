@@ -2,7 +2,7 @@
 # @Author: Yedarm Seong
 # @Date:   2022-07-06 04:27:28
 # @Last Modified by:   Yedarm Seong
-# @Last Modified time: 2022-07-11 03:58:16
+# @Last Modified time: 2022-07-12 14:58:55
 
 import os
 from os import path as osp
@@ -12,7 +12,7 @@ import wandb
 import torch
 from torch.cuda.amp import autocast
 from sklearn.metrics import mean_squared_error
-from config import Config, WandbConfig
+from config import Config
 
 
 class Trainer:
@@ -25,13 +25,15 @@ class Trainer:
         criterion,
         scheduler,
         scaler,
+        logger,
     ):
         self.train_loader, self.valid_loader = dataloaders
+        self.model = model
+        self.optimizer = optimizer
         self.criterion = criterion
         self.scheduler = scheduler
-        self.optimizer = optimizer
-        self.model = model
         self.scaler = scaler
+        self.logger = logger
         self.device = config.device
 
     def train_one_epoch(self):
@@ -111,18 +113,10 @@ class Trainer:
     def train(
         self,
         epochs: int=10,
-        output_dir: str="./working/",
     ):
-        config, wandb_config = Config(), WandbConfig()
-        wandb.init(
-            project="ai4code",
-            entity="25111",
-            name=config.trial_name,
-            config=wandb_config,
-            dir=config.log_dir,
-        )
-        wandb.watch(self.model)
+        config = Config()
 
+        self.logger.watch(self.model)
         """
         Low-effort alternative for doing the complete training and validation process
         """
@@ -143,12 +137,10 @@ class Trainer:
 
             if valid_mse < best_loss:
                 best_loss = valid_mse
-                save_path = osp.join(output_dir, config.trial_name)
-                self.save_model(save_path, f"model_{epoch}.pth")
+                save_path = osp.join(self.logger.dir, config.trial_name)
+                self.save_model(save_path, f"ckpt_{epoch:03d}.pth")
                 print(f"Saved model with val_loss: {best_loss:.4f}")
-                wandb.save(osp.join(save_path, f"model_{epoch}.pth"))
 
-        wandb.run.finish()
 
     def save_model(self, path, name, verbose=False):
         """
@@ -170,4 +162,4 @@ class Trainer:
         Logs a key-value pair to W&B
         """
         for key, value in kwargs.items():
-            wandb.log({key: value})
+            self.logger.log({key: value})
