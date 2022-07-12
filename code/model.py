@@ -29,8 +29,6 @@ def get_model(config):
         is_split_into_words=True,
     )
     model = CodeRearranger(tx.AutoModel.from_pretrained("microsoft/codebert-base"))
-    if config.mode == "train":
-        model = DataParallel(model, device_ids=[0, 1, 2, 3])
 
     if osp.exists(config.working_dir / "models" / config.prev_model):
         model.load_state_dict(
@@ -38,4 +36,6 @@ def get_model(config):
         )
     else:
         print(f"There is no {config.prev_model} model to load, use base model instead")
-    return tokenizer, model.to(config.device)
+
+    model = DataParallel(model, device_ids=[0, 1, 2, 3]).to(config.device)
+    return tokenizer, model
