@@ -41,7 +41,9 @@ class Trainer:
         Trains the model for 1 epoch
         """
         self.model.train()
-        train_pbar = tqdm(enumerate(self.train_loader), total=len(self.train_loader))
+        train_pbar = tqdm(
+            enumerate(self.train_loader), total=len(self.train_loader)
+        )
         train_preds, train_targets = [], []
 
         for bnum, data in train_pbar:
@@ -84,7 +86,9 @@ class Trainer:
         Validates the model for 1 epoch
         """
         self.model.eval()
-        valid_pbar = tqdm(enumerate(self.valid_loader), total=len(self.valid_loader))
+        valid_pbar = tqdm(
+            enumerate(self.valid_loader), total=len(self.valid_loader)
+        )
         valid_preds, valid_targets = [], []
 
         for bnum, data in valid_pbar:
@@ -93,7 +97,9 @@ class Trainer:
             ttis = data[2].to(self.device)
             targets = data[-1].to(self.device)
 
-            outputs = self.model(ids=ids, mask=mask, token_type_ids=ttis).view(-1)
+            outputs = self.model(ids=ids, mask=mask, token_type_ids=ttis).view(
+                -1
+            )
             valid_loss = self.criterion(outputs, targets)
 
             self.wandb_log(valid_batch_loss=valid_loss.item())
@@ -133,7 +139,9 @@ class Trainer:
 
             if valid_mse < best_loss:
                 best_loss = valid_mse
-                save_path = self.config.working_dir / "models" / self.config.trial_name
+                save_path = (
+                    self.config.working_dir / "models" / self.config.trial_name
+                )
                 self.save_model(save_path, f"ckpt_{epoch:03d}.pth")
                 print(f"Saved model with val_loss: {best_loss:.4f}")
 
