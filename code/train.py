@@ -95,8 +95,8 @@ def main():
     # TBD: Should we upload all checkpoint models?
     artifact_model = wandb.Artifact("model", type="model")
     artifact_model.add_dir(
-        config.working_dir / "models" / config.trial_name,
-        name=f"models/{config.trial_name}",
+        config.working_dir / config.base_model / config.trial_name,
+        name=f"{config.base_model}/{config.trial_name}",
     )
     wandb.run.log_artifact(artifact_model)
 

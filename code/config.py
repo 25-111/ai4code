@@ -11,7 +11,7 @@ class Config:
     working_dir = Path("../working/")
 
     # Model
-    base_model = ["codebert", "codet5"]
+    base_model = ["codebert", "codet5"][0]
     prev_model = None  # Path("0712-1900-codebert-from(0712-1700).pth")
 
     # Train

@@ -23,21 +23,27 @@ class CodeRearranger(nn.Module):
 
 
 def get_model(config):
+    model_path = (
+        "Salesforce/codet5-base"
+        if config.basemodel == "codet5"
+        else "microsoft/codebert-base"
+    )
+
     tokenizer = tx.AutoTokenizer.from_pretrained(
-        "microsoft/codebert-base",
+        model_path,
         do_lower_case=False,  # "uncased" in config.prev_model
         is_split_into_words=True,
     )
-    model = CodeRearranger(
-        tx.AutoModel.from_pretrained("microsoft/codebert-base")
-    )
+    model = CodeRearranger(tx.AutoModel.from_pretrained(model_path))
 
     try:
         model.load_state_dict(
-            torch.load(config.working_dir / "models" / config.prev_model)
+            torch.load(config.working_dir / config.basemodel / config.prev_model)
         )
     except:
-        print(f"There is no {config.prev_model} model, use base model instead")
+        print(
+            f"There is no {config.prev_model}, use base {config.basemodel} instead"
+        )
 
     model = DataParallel(model, device_ids=[0, 1, 2, 3]).to(config.device)
     return tokenizer, model
