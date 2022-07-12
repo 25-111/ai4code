@@ -28,7 +28,7 @@ class Config:
     timestamp = datetime.now(timezone("Asia/Seoul")).strftime("%m%d-%H%M")
     trial_name = (
         f"{timestamp}-from({str(prev_model)[:9]})"
-        if not prev_model
+        if prev_model is not None
         else f"{timestamp}-from(codebert-base)"
     )
 
