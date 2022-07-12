@@ -46,7 +46,7 @@ def main():
     scaler = yield_scaler()
     print("Setting hyperparameters..: Done!")
 
-    logger = wandb.init(
+    run = wandb.init(
         project="ai4code",
         entity="25111",
         name=config.trial_name,
@@ -63,29 +63,34 @@ def main():
         criterion=criterion,
         scheduler=scheduler,
         scaler=scaler,
-        logger=logger
+        logger=run
     )
 
     trainer.train(epochs=config.num_epochs)
 
-    artifact_dataset = wandb.Artifact("ai4code-dataset", type="dataset")
+    # logging to wandb
+    # no upload unless the dataset changes
+    artifact_dataset = wandb.Artifact("dataset", type="dataset")
     artifact_dataset.add_file(
-        "../input/AI4Code/train.csv", name="input/train.csv"
+        config.data_dir / "train.csv", name="input/train.csv"
     )
     artifact_dataset.add_file(
-        "../input/AI4Code/train_md.csv", name="input/train_md.csv"
+        config.data_dir / "train_md.csv", name="input/train_md.csv"
     )
     artifact_dataset.add_file(
-        "../input/AI4Code/test.csv", name="input/test.csv"
+        config.data_dir / "test.csv", name="input/test.csv"
     )
     artifact_dataset.add_file(
-        "../input/AI4Code/test_md.csv", name="input/test_md.csv"
+        config.data_dir / "test_md.csv", name="input/test_md.csv"
     )
     wandb.run.log_artifact(artifact_dataset)
 
-    artifact_model = wandb.Artifact("ai4code-model", type="model")
+    # model upload
+    # TBD: Should we upload all checkpoint models?
+    artifact_model = wandb.Artifact("model", type="model")
     artifact_model.add_dir(
-        f"{wandb.run.dir}/{config.trial_name}", name="models"
+        config.log_dir / config.trial_name,
+        name=f"models/{config.trial_name}"
     )
     wandb.run.log_artifact(artifact_model)
 

@@ -1,7 +1,6 @@
 from datetime import datetime
 from pytz import timezone
 from pathlib import Path
-import torch
 
 # from kaggle_secrets import UserSecretsClient
 # user_secrets = UserSecretsClient()
@@ -29,14 +28,14 @@ class Config:
     max_len = 256
     num_epochs = 2
     num_workers = 8
-    batch_size = 128
+    batch_size = 192
     lr = 3e-4
     seed = 42
 
     # Defaults
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    timestamp = datetime.now(timezone("Asia/Seoul")).strftime("%y%m%d-%H%M")
-    trial_name = f"{timestamp}-{model_name}-{optim}-{loss}"
+    device = "cuda"
+    timestamp = datetime.now(timezone("Asia/Seoul")).strftime("%y%m%d-%H%M%S")
+    trial_name = f"{timestamp}-{model_name.replace('/', '_')}-{optim}-{loss}"
     data_dir = Path("../input/AI4Code/")
     log_dir = Path("./working/")
 

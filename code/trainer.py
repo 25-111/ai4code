@@ -2,7 +2,7 @@
 # @Author: Yedarm Seong
 # @Date:   2022-07-06 04:27:28
 # @Last Modified by:   Yedarm Seong
-# @Last Modified time: 2022-07-12 14:58:55
+# @Last Modified time: 2022-07-12 15:25:01
 
 import os
 from os import path as osp
@@ -12,7 +12,6 @@ import wandb
 import torch
 from torch.cuda.amp import autocast
 from sklearn.metrics import mean_squared_error
-from config import Config
 
 
 class Trainer:
@@ -28,13 +27,14 @@ class Trainer:
         logger,
     ):
         self.train_loader, self.valid_loader = dataloaders
+        self.config = config
         self.model = model
         self.optimizer = optimizer
         self.criterion = criterion
         self.scheduler = scheduler
         self.scaler = scaler
         self.logger = logger
-        self.device = config.device
+        self.device = self.config.device
 
     def train_one_epoch(self):
         """
@@ -114,7 +114,6 @@ class Trainer:
         self,
         epochs: int=10,
     ):
-        config = Config()
 
         self.logger.watch(self.model)
         """
@@ -137,7 +136,7 @@ class Trainer:
 
             if valid_mse < best_loss:
                 best_loss = valid_mse
-                save_path = osp.join(self.logger.dir, config.trial_name)
+                save_path = self.config.log_dir / self.config.trial_name
                 self.save_model(save_path, f"ckpt_{epoch:03d}.pth")
                 print(f"Saved model with val_loss: {best_loss:.4f}")
 
