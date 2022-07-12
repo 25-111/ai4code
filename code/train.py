@@ -23,7 +23,6 @@ def main():
 
     print("Loading Data..: Start")
     df_train_md, df_valid_md, df_orders = preprocess(config)
-    df_train_md, df_valid_md = df_train_md[:1000], df_valid_md[:1000]
     trainset = NotebookDataset(
         df_train_md, max_len=config.max_len, tokenizer=tokenizer, config=config
     )
