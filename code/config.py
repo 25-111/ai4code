@@ -12,7 +12,7 @@ class Config:
 
     # Model
     base_model = ["codebert", "codet5"]
-    prev_model = None  # Path("0712-1900-from(0712-1700).pth")
+    prev_model = None  # Path("0712-1900-codebert-from(0712-1700).pth")
 
     # Train
     optim = ["AdamW"][0]
@@ -28,9 +28,9 @@ class Config:
     # Log
     timestamp = datetime.now(timezone("Asia/Seoul")).strftime("%m%d-%H%M")
     trial_name = (
-        f"{timestamp}-from({str(prev_model)[:9]})"
+        f"{timestamp}-{base_model}-from({str(prev_model)[:9]})"
         if prev_model is not None
-        else f"{timestamp}-from({base_model}-base)"
+        else f"{timestamp}-{base_model}-from({base_model}-base)"
     )
 
 
