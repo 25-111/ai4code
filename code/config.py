@@ -1,11 +1,7 @@
 from datetime import datetime
-from pytz import timezone
 from pathlib import Path
 
-# from kaggle_secrets import UserSecretsClient
-# user_secrets = UserSecretsClient()
-# wandb_key = user_secrets.get_secret("WANDB_API_KEY")
-# WANDB_KEY = "5f3589d7b951d748cc5a309b0b8c08aa7945ce52"
+from pytz import timezone
 
 
 class Config:
@@ -36,8 +32,8 @@ class Config:
     device = "cuda"
     timestamp = datetime.now(timezone("Asia/Seoul")).strftime("%y%m%d-%H%M%S")
     trial_name = f"{timestamp}-{model_name.replace('/', '_')}-{optim}-{loss}"
-    data_dir = Path("../input/AI4Code/")
-    log_dir = Path("./working/")
+    input_dir = Path("../input/AI4Code/")
+    working_dir = Path("../working/")
 
 
 class WandbConfig:

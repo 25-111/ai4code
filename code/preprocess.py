@@ -1,8 +1,9 @@
 from os import path as osp
-from tqdm import tqdm
+
+import numpy as np
 import pandas as pd
 from sklearn.model_selection import GroupShuffleSplit
-import numpy as np
+from tqdm import tqdm
 
 
 def preprocess(config):

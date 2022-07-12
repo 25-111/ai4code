@@ -1,12 +1,12 @@
-from torch.utils.data import DataLoader
 import wandb
+from torch.utils.data import DataLoader
 
-from preprocess import preprocess
-from dataset import NotebookDataset
-from model import get_model
-from trainer import Trainer
-from train_utils import yield_optimizer, yield_criterion, yield_scheduler, yield_scaler
-from config import Config, WandbConfig
+from .config import Config, WandbConfig
+from .dataset import NotebookDataset
+from .model import get_model
+from .preprocess import preprocess
+from .train_utils import yield_criterion, yield_optimizer, yield_scaler, yield_scheduler
+from .trainer import Trainer
 
 
 def main():
@@ -51,7 +51,7 @@ def main():
         entity="25111",
         name=config.trial_name,
         config=wandb_config,
-        dir=config.log_dir,
+        dir=config.working_dir,
     )
 
     # Train
@@ -72,16 +72,16 @@ def main():
     # no upload unless the dataset changes
     artifact_dataset = wandb.Artifact("dataset", type="dataset")
     artifact_dataset.add_file(
-        config.data_dir / "train.csv", name="input/train.csv"
+        config.input_dir / "train.csv", name="input/train.csv"
     )
     artifact_dataset.add_file(
-        config.data_dir / "train_md.csv", name="input/train_md.csv"
+        config.input_dir / "train_md.csv", name="input/train_md.csv"
     )
     artifact_dataset.add_file(
-        config.data_dir / "test.csv", name="input/test.csv"
+        config.input_dir / "test.csv", name="input/test.csv"
     )
     artifact_dataset.add_file(
-        config.data_dir / "test_md.csv", name="input/test_md.csv"
+        config.input_dir / "test_md.csv", name="input/test_md.csv"
     )
     wandb.run.log_artifact(artifact_dataset)
 
@@ -89,7 +89,7 @@ def main():
     # TBD: Should we upload all checkpoint models?
     artifact_model = wandb.Artifact("model", type="model")
     artifact_model.add_dir(
-        config.log_dir / "models" / config.trial_name,
+        config.working_dir / "models" / config.trial_name,
         name=f"models/{config.trial_name}"
     )
     wandb.run.log_artifact(artifact_model)

@@ -10,5 +10,4 @@ scikit-learn==1.0.2
 scipy==1.7.3
 seaborn==0.11.2
 torch==1.11.0
-transformers==4.18.0
 wandb==0.12.16

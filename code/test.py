@@ -1,15 +1,20 @@
-import sys
-from tqdm import tqdm
+import argparse
+from os import path as osp
+
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
-from preprocess import preprocess, get_features
-from dataset import NotebookDataset, read_data
-from model import get_model
-from config import Config
+from tqdm import tqdm
+
+from .config import Config
+from .dataset import NotebookDataset
+from .model import get_model
+from .preprocess import get_features, preprocess
+
+MODEL_PATH = "220711-0122-microsoft/codebert-base-AdamW-MSE/model_0.pth"
 
 
-def main():
+def main(args):
     config = Config()
     config.mode = "test"
 
@@ -18,7 +23,7 @@ def main():
     tokenizer, model = get_model(config)
     print("Loading Model..: Done!")
 
-    model.load_state_dict(torch.load("../working/220711-0122-microsoft/codebert-base-AdamW-MSE/model_0.pth"))
+    model.load_state_dict(torch.load(osp.join(Config.working_dir, args.model_path)))
     df_test, df_test_md = preprocess(config)
 
     print("Loading Data..: Start")
@@ -78,4 +83,8 @@ def test(model, dataloader, config):
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model_path", "-mp", type=str, default=MODEL_PATH)
+    args = parser.parse_args()
+
+    main(args)

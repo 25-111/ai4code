@@ -1,6 +1,6 @@
 from torch import optim
-from torch.nn import MSELoss
 from torch.cuda.amp import GradScaler
+from torch.nn import MSELoss
 
 
 def yield_optimizer(model, config):
