@@ -32,9 +32,9 @@ def get_model(config):
     if config.mode == "train":
         model = DataParallel(model, device_ids=[0, 1, 2, 3])
 
-    if osp.exists(config.workind_dir / "models" / config.prev_model):
+    if osp.exists(config.working_dir / "models" / config.prev_model):
         model.load_state_dict(
-            torch.load(config.workind_dir / "models" / config.prev_model)
+            torch.load(config.working_dir / "models" / config.prev_model)
         )
     else:
         print(f"There is no {config.prev_model} model to load, use base model instead")
