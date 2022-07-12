@@ -1,8 +1,6 @@
-# Working directory
+# Working files
+input/
 working/
-
-# Wandb
-wandb/
 
 # Temporal files
 tmp*

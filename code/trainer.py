@@ -110,12 +110,9 @@ class Trainer:
 
         return valid_preds, valid_targets
 
-    def train(
-        self,
-        epochs: int=10,
-    ):
-
+    def train(self, epochs: int = 10):
         self.logger.watch(self.model)
+
         """
         Low-effort alternative for doing the complete training and validation process
         """
@@ -136,12 +133,9 @@ class Trainer:
 
             if valid_mse < best_loss:
                 best_loss = valid_mse
-                save_path = (
-                    self.config.log_dir / "models" / self.config.trial_name
-                )
+                save_path = self.config.working_dir / "models" / self.config.trial_name
                 self.save_model(save_path, f"ckpt_{epoch:03d}.pth")
                 print(f"Saved model with val_loss: {best_loss:.4f}")
-
 
     def save_model(self, path, name, verbose=False):
         """
@@ -156,7 +150,6 @@ class Trainer:
         torch.save(self.model.module.state_dict(), osp.join(path, name))
         if verbose:
             print(f"Model Saved at: {osp.join(path, name)}")
-
 
     def wandb_log(self, **kwargs):
         """

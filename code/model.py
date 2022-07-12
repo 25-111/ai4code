@@ -1,8 +1,4 @@
-# -*- coding: utf-8 -*-
-# @Author: Yedarm Seong
-# @Date:   2022-06-27 03:31:28
-# @Last Modified by:   Yedarm Seong
-# @Last Modified time: 2022-07-11 02:06:33
+from os import path as osp
 
 import torch
 import torch.nn as nn
@@ -19,12 +15,7 @@ class CodeRearranger(nn.Module):
         self.fc = nn.Linear(768, 1)
 
     def forward(self, ids, mask, token_type_ids):
-        _, x = self.model(
-            ids,
-            mask,
-            token_type_ids=token_type_ids,
-            return_dict=False
-        )
+        _, x = self.model(ids, mask, token_type_ids=token_type_ids, return_dict=False)
         x = self.dropout(x)
         x = self.fc(x)
         y = torch.sigmoid(x)
@@ -32,43 +23,19 @@ class CodeRearranger(nn.Module):
 
 
 def get_model(config):
-    # TODO: rename model_name to model_path for training on msj server
-    # if config.model_name.startswith("bert"):
-    #     tokenizer = tx.AutoTokenizer.from_pretrained(
-    #         config.model_name, do_lower_case=config.model_name.endswith("uncased")
-    #     )
-    #     # tokenizer = tx.BertTokenizer.from_pretrained(
-    #     #     config.model_name, do_lower_case=config.model_name.endswith("uncased")
-    #     # )
-    #     model = tx.AutoModel.from_pretrained(config.model_name)
-    #     # model = tx.BertModel.from_pretrained(config.model_name)
-    # elif config.model_name.startswith("distill-bert"):
-    #     tokenizer = tx.DistilBertTokenizer.from_pretrained(
-    #         config.model_name, do_lower_case=config.model_name.endswith("uncased")
-    #     )
-    #     model = tx.DistilBertModel.from_pretrained(config.model_name)
-    # elif config.model_name.startswith("roberta"):
-    #     tokenizer = tx.RobertaTokenizer.from_pretrained(
-    #         config.model_name, do_lower_case=config.model_name.endswith("uncased")
-    #     )
-    #     model = tx.RobertaModel.from_pretrained(config.model_name)
-    # elif config.model_name.startswith("albert"):
-    #     tokenizer = tx.AlbertTokenizer.from_pretrained(
-    #         config.model_name, do_lower_case=config.model_name.endswith("uncased")
-    #     )
-    #     model = tx.AlbertModel.from_pretrained(config.model_name)
-    # else:
-    #     tokenizer = tx.AutoTokenizer.from_pretrained(
-    #         config.model_name, do_lower_case=config.model_name.endswith("uncased")
-    #     )
-    #     model = tx.AutoModel.from_pretrained(config.model_name)
-
     tokenizer = tx.AutoTokenizer.from_pretrained(
-        config.model_name,
-        do_lower_case="uncased" in config.model_name,
-        is_split_into_words=True
+        "microsoft/codebert-base",
+        do_lower_case=False,  # "uncased" in config.prev_model
+        is_split_into_words=True,
     )
-    model = CodeRearranger(tx.AutoModel.from_pretrained(config.model_name))
-    model = DataParallel(model, device_ids=[0, 1, 2, 3])
-    
+    model = CodeRearranger(tx.AutoModel.from_pretrained("microsoft/codebert-base.pth"))
+    if config.mode == "train":
+        model = DataParallel(model, device_ids=[0, 1, 2, 3])
+
+    if osp.exists(config.workind_dir / "models" / config.prev_model):
+        model.load_state_dict(
+            torch.load(config.workind_dir / "models" / config.prev_model)
+        )
+    else:
+        print(f"There is no {config.prev_model} model to load, use base model instead")
     return tokenizer, model.to(config.device)

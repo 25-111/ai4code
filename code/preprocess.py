@@ -7,8 +7,8 @@ from tqdm import tqdm
 
 
 def preprocess(config):
-    if not osp.exists(config.data_dir / f"{config.mode}.csv"):
-        data_pth = list((config.data_dir / config.mode).glob("*.json"))
+    if not osp.exists(config.input_dir / f"{config.mode}.csv"):
+        data_pth = list((config.input_dir / config.mode).glob("*.json"))
         notebooks = [
             read_notebook(path) for path in tqdm(data_pth, desc="Reading notebooks")
         ]
@@ -23,7 +23,7 @@ def preprocess(config):
 
         if config.mode == "train":
             df_orders = pd.read_csv(
-                config.data_dir / "train_orders.csv",
+                config.input_dir / "train_orders.csv",
                 index_col="id",
                 squeeze=True,
             ).str.split()
@@ -45,7 +45,7 @@ def preprocess(config):
             )
 
             df_ancestors = pd.read_csv(
-                config.data_dir / "train_ancestors.csv", index_col="id"
+                config.input_dir / "train_ancestors.csv", index_col="id"
             )
             df = (
                 df.reset_index()
@@ -68,10 +68,10 @@ def preprocess(config):
                 drop=True
             )
 
-            df_train.dropna().to_csv(config.data_dir / "train.csv", index=False)
-            df_train_md.dropna().to_csv(config.data_dir / "train_md.csv", index=False)
-            df_valid.dropna().to_csv(config.data_dir / "valid.csv", index=False)
-            df_valid_md.dropna().to_csv(config.data_dir / "valid_md.csv", index=False)
+            df_train.dropna().to_csv(config.input_dir / "train.csv", index=False)
+            df_train_md.dropna().to_csv(config.input_dir / "train_md.csv", index=False)
+            df_valid.dropna().to_csv(config.input_dir / "valid.csv", index=False)
+            df_valid_md.dropna().to_csv(config.input_dir / "valid_md.csv", index=False)
             return df_train_md, df_valid_md, df_orders
 
         elif config.mode == "test":
@@ -92,28 +92,28 @@ def preprocess(config):
                 drop=True
             )
 
-            df_test.dropna().to_csv(config.data_dir / "test.csv", index=False)
-            df_test_md.dropna().to_csv(config.data_dir / "test_md.csv", index=False)
+            df_test.dropna().to_csv(config.input_dir / "test.csv", index=False)
+            df_test_md.dropna().to_csv(config.input_dir / "test_md.csv", index=False)
 
             return df_test, df_test_md
 
     else:
         if config.mode == "train":
             df_orders = pd.read_csv(
-                config.data_dir / "train_orders.csv",
+                config.input_dir / "train_orders.csv",
                 index_col="id",
                 squeeze=True,
             ).str.split()
 
-            df_train = pd.read_csv(config.data_dir / "train.csv")
-            df_train_md = pd.read_csv(config.data_dir / "train_md.csv")
-            df_valid = pd.read_csv(config.data_dir / "valid.csv")
-            df_valid_md = pd.read_csv(config.data_dir / "valid_md.csv")
+            df_train = pd.read_csv(config.input_dir / "train.csv")
+            df_train_md = pd.read_csv(config.input_dir / "train_md.csv")
+            df_valid = pd.read_csv(config.input_dir / "valid.csv")
+            df_valid_md = pd.read_csv(config.input_dir / "valid_md.csv")
             return df_train_md, df_valid_md, df_orders
 
         elif config.mode == "test":
-            df_test = pd.read_csv(config.data_dir / "test.csv")
-            df_test_md = pd.read_csv(config.data_dir / "test_md.csv")
+            df_test = pd.read_csv(config.input_dir / "test.csv")
+            df_test_md = pd.read_csv(config.input_dir / "test_md.csv")
             return df_test, df_test_md
 
 

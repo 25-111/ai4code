@@ -1,5 +1,4 @@
 import argparse
-from os import path as osp
 
 import numpy as np
 import torch
@@ -10,22 +9,18 @@ from preprocess import get_features, preprocess
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-MODEL_PATH = "220711-0122-microsoft/codebert-base-AdamW-MSE/model_0.pth"
-
 
 def main(args):
     config = Config()
     config.mode = "test"
 
-    # Loading Model
     print("Loading Model..: Start")
     tokenizer, model = get_model(config)
     print("Loading Model..: Done!")
 
-    model.load_state_dict(torch.load(osp.join(Config.working_dir, args.model_path)))
+    print("Loading Data..: Start")
     df_test, df_test_md = preprocess(config)
 
-    print("Loading Data..: Start")
     testset = NotebookDataset(
         df_test_md, max_len=config.max_len, tokenizer=tokenizer, config=config
     )
@@ -38,11 +33,11 @@ def main(args):
     )
     print("Loading Data..: Done!")
 
-    print("Testing..: Start!")
+    print("Testing..: Start")
     _, y_test = test(model, testloader, config)
     print("Testing..: Done!")
 
-    print("Creating submission..: Start!")
+    print("Creating submission..: Start")
     df_test.loc[df_test["cell_type"] == "markdown", "pred"] = y_test
 
     df_submission = (
@@ -53,10 +48,7 @@ def main(args):
     )
     df_submission.rename(columns={"cell_id": "cell_order"}, inplace=True)
 
-    df_submission.to_csv(
-        f"submission_{config.timestamp}.csv",
-        index=False,
-    )
+    df_submission.to_csv(f"output/submission_{args.timestamp}.csv", index=False)
     print("Creating submission..: Done!")
 
 
@@ -83,7 +75,8 @@ def test(model, dataloader, config):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model_path", "-mp", type=str, default=MODEL_PATH)
+    parser.add_argument("--trial-name", "-tn", type=str)
+    parser.add_argument("--epoch-num", "-en", type=int, default=0)
     args = parser.parse_args()
 
     main(args)
