@@ -28,7 +28,7 @@ def get_model(config):
         do_lower_case=False,  # "uncased" in config.prev_model
         is_split_into_words=True,
     )
-    model = CodeRearranger(tx.AutoModel.from_pretrained("microsoft/codebert-base.pth"))
+    model = CodeRearranger(tx.AutoModel.from_pretrained("microsoft/codebert-base"))
     if config.mode == "train":
         model = DataParallel(model, device_ids=[0, 1, 2, 3])
 
