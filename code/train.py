@@ -1,12 +1,11 @@
 import wandb
+from config import Config, WandbConfig
+from dataset import NotebookDataset
+from model import get_model
+from preprocess import preprocess
 from torch.utils.data import DataLoader
-
-from .config import Config, WandbConfig
-from .dataset import NotebookDataset
-from .model import get_model
-from .preprocess import preprocess
-from .train_utils import yield_criterion, yield_optimizer, yield_scaler, yield_scheduler
-from .trainer import Trainer
+from train_utils import yield_criterion, yield_optimizer, yield_scaler, yield_scheduler
+from trainer import Trainer
 
 
 def main():
@@ -63,7 +62,7 @@ def main():
         criterion=criterion,
         scheduler=scheduler,
         scaler=scaler,
-        logger=run
+        logger=run,
     )
 
     trainer.train(epochs=config.num_epochs)
@@ -71,15 +70,11 @@ def main():
     # logging to wandb
     # no upload unless the dataset changes
     artifact_dataset = wandb.Artifact("dataset", type="dataset")
-    artifact_dataset.add_file(
-        config.input_dir / "train.csv", name="input/train.csv"
-    )
+    artifact_dataset.add_file(config.input_dir / "train.csv", name="input/train.csv")
     artifact_dataset.add_file(
         config.input_dir / "train_md.csv", name="input/train_md.csv"
     )
-    artifact_dataset.add_file(
-        config.input_dir / "test.csv", name="input/test.csv"
-    )
+    artifact_dataset.add_file(config.input_dir / "test.csv", name="input/test.csv")
     artifact_dataset.add_file(
         config.input_dir / "test_md.csv", name="input/test_md.csv"
     )
@@ -90,11 +85,12 @@ def main():
     artifact_model = wandb.Artifact("model", type="model")
     artifact_model.add_dir(
         config.working_dir / "models" / config.trial_name,
-        name=f"models/{config.trial_name}"
+        name=f"models/{config.trial_name}",
     )
     wandb.run.log_artifact(artifact_model)
 
     wandb.run.finish()
+
 
 if __name__ == "__main__":
     main()

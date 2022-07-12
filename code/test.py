@@ -3,13 +3,12 @@ from os import path as osp
 
 import numpy as np
 import torch
+from config import Config
+from dataset import NotebookDataset
+from model import get_model
+from preprocess import get_features, preprocess
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-
-from .config import Config
-from .dataset import NotebookDataset
-from .model import get_model
-from .preprocess import get_features, preprocess
 
 MODEL_PATH = "220711-0122-microsoft/codebert-base-AdamW-MSE/model_0.pth"
 
