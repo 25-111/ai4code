@@ -11,7 +11,7 @@ class Config:
     working_dir = Path("../working/")
 
     # Model
-    prev_model = Path("codebert-base/codebert-base.pth")
+    prev_model = Path("codet5-base/codet5-base.pth")
 
     # Train
     optim = ["AdamW"][0]

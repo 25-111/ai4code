@@ -10,7 +10,7 @@ from train_utils import (
     yield_scaler,
     yield_scheduler,
 )
-from trainer import Trainer
+from trainer import get_trainer
 
 
 def main():
@@ -61,7 +61,7 @@ def main():
         dir=config.working_dir,
     )
 
-    trainer = Trainer(
+    trainer = get_trainer(
         config,
         dataloaders=[train_loader, valid_loader],
         model=model,

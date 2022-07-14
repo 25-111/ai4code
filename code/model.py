@@ -38,7 +38,9 @@ def get_model(config):
 
     try:
         model.load_state_dict(
-            torch.load(config.working_dir / config.base_model / config.prev_model)
+            torch.load(
+                config.working_dir / config.base_model / config.prev_model
+            )
         )
     except:
         print(
