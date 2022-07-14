@@ -314,28 +314,8 @@ class T5Trainer:
             self.logger.log({key: value})
 
 
-def get_trainer(
-    config, dataloaders, model, optimizer, criterion, scheduler, scaler, logger
-):
+def get_trainer(config, **kwargs):
     if config.base_model == "codebert":
-        return BertTrainer(
-            config,
-            dataloaders,
-            model,
-            optimizer,
-            criterion,
-            scheduler,
-            scaler,
-            logger,
-        )
+        return BertTrainer(config, **kwargs)
     elif config.base_model == "codet5":
-        return T5Trainer(
-            config,
-            dataloaders,
-            model,
-            optimizer,
-            criterion,
-            scheduler,
-            scaler,
-            logger,
-        )
+        return T5Trainer(config, **kwargs)
