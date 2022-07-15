@@ -11,17 +11,19 @@ class Config:
     working_dir = Path("../working/")
 
     # Model
-    prev_model = Path("codet5-base/codet5-base.pth")
+    prev_model = Path("codebert-base/codebert-base.pth")
+    adjustment = "scaler"
 
     # Train
     optim = ["AdamW"][0]
     loss = ["MSE"][0]
     valid_ratio = 0.1
     max_len = 256
-    num_epochs = 10
+    num_epochs = 15
     num_workers = 8
     batch_size = 192
     lr = 3e-4
+    accum_steps = 4
     seed = 42
 
     # Log
@@ -32,6 +34,7 @@ class Config:
         if not str(prev_model).endswith("base.pth")
         else f"{timestamp}-{base_model}-from({base_model}-base)"
     )
+    trial_name += f"-{adjustment}" if adjustment else ""
 
 
 class WandbConfig:

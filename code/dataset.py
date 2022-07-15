@@ -15,10 +15,10 @@ class NotebookDataset(Dataset):
         self.config = config
 
     def __getitem__(self, idx):
-        sample = self.df.iloc[idx]
+        item = self.df.iloc[idx]
 
         inputs = self.tokenizer.encode_plus(
-            sample.source,
+            item.source,
             add_special_tokens=True,
             padding="max_length",
             truncation=True,
@@ -31,7 +31,7 @@ class NotebookDataset(Dataset):
         token_type_ids = torch.LongTensor(inputs["token_type_ids"])
 
         if self.config.mode == "train":
-            target = torch.FloatTensor([sample.pct_rank])
+            target = torch.FloatTensor([item.pct_rank])
             return ids, mask, token_type_ids, target
         else:
             return ids, mask, token_type_ids
