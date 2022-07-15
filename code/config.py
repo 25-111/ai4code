@@ -22,7 +22,7 @@ class Config:
     loss = ["MSE"][0]
     valid_ratio = 0.1
     max_len = 256
-    num_epochs = 15
+    num_epochs = 3
     num_workers = 8
     batch_size = 192
     lr = 3e-4
@@ -33,9 +33,9 @@ class Config:
     timestamp = datetime.now(timezone("Asia/Seoul")).strftime("%m%d-%H%M")
     base_model = "codebert" if "codebert" in str(prev_model) else "codet5"
     trial_name = (
-        f"{timestamp}-{base_model}-{data_type}-from({str(prev_model)[:9]})"
+        f"{timestamp}-{data_type}-{base_model}-from-{str(prev_model)[:9]}"
         if not str(prev_model).endswith("base.pth")
-        else f"{timestamp}-{base_model}-from({base_model}-base)"
+        else f"{timestamp}-{data_type}-{base_model}-from-{base_model}-base"
     )
     trial_name += f"-{adjustment}" if adjustment else ""
 
