@@ -82,7 +82,7 @@ class BertTrainer:
         )
         valid_preds, valid_targets = [], []
 
-        for bnum, data in valid_pbar:
+        for _, data in valid_pbar:
             ids = data[0].to(self.device)
             mask = data[1].to(self.device)
             ttis = data[2].to(self.device)
@@ -112,7 +112,6 @@ class BertTrainer:
         Low-effort alternative for doing the complete training and validation process
         """
         best_loss = int(1e9)
-        best_preds = None
         for epoch in range(epochs):
             print(f"{'='*20} Epoch: {epoch+1} / {epochs} {'='*20}")
 

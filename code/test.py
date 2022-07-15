@@ -17,7 +17,7 @@ def main():
     print("Loading Model..: Done!")
 
     print("Loading Data..: Start")
-    df_test, df_test_md = preprocess(config)
+    df_test, df_test_md, df_test_py = preprocess(config)
 
     testset = NotebookDataset(
         df_test_md, max_len=config.max_len, tokenizer=tokenizer, config=config

@@ -102,6 +102,7 @@ def preprocess(config):
             df_valid_md.dropna().to_csv(
                 config.input_dir / "valid_md.csv", index=False
             )
+
             return (
                 df_train_md,
                 df_valid_md,
@@ -138,7 +139,7 @@ def preprocess(config):
                 config.input_dir / "test_md.csv", index=False
             )
 
-            return df_test_md, df_test_py
+            return df_test, df_test_md, df_test_py
 
     else:
         if config.mode == "train":
@@ -154,9 +155,10 @@ def preprocess(config):
             )
 
         elif config.mode == "test":
+            df_test = pd.read_csv(config.input_dir / "test.csv")
             df_test_py = pd.read_csv(config.input_dir / "test_py.csv")
             df_test_md = pd.read_csv(config.input_dir / "test_md.csv")
-            return df_test_md, df_test_py
+            return df_test, df_test_md, df_test_py
 
 
 def read_notebook(path):

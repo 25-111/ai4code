@@ -22,7 +22,7 @@ def main():
     print("Loading Model..: Done!")
 
     print("Loading Data..: Start")
-    df_train_md, df_valid_md, df_orders = preprocess(config)
+    df_train_md, df_valid_md, df_train_py, df_valid_py = preprocess(config)
     trainset = NotebookDataset(
         df_train_md, max_len=config.max_len, tokenizer=tokenizer, config=config
     )
