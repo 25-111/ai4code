@@ -22,12 +22,26 @@ def main():
     print("Loading Model..: Done!")
 
     print("Loading Data..: Start")
-    df_train_md, df_valid_md, df_train_py, df_valid_py = preprocess(config)
+    (
+        df_train,
+        df_valid,
+        df_train_md,
+        df_valid_md,
+        df_train_py,
+        df_valid_py,
+    ) = preprocess(config)
+
+    if config.data_type == "all":
+        df_train_, df_valid_ = df_train, df_valid
+    elif config.data_type == "md":
+        df_train_, df_valid_ = df_train_md, df_valid_md
+    elif config.data_type == "py":
+        df_train_, df_valid_ = df_train_py, df_valid_py
     trainset = NotebookDataset(
-        df_train_md, max_len=config.max_len, tokenizer=tokenizer, config=config
+        df_train_, max_len=config.max_len, tokenizer=tokenizer, config=config
     )
     validset = NotebookDataset(
-        df_valid_md, max_len=config.max_len, tokenizer=tokenizer, config=config
+        df_valid_, max_len=config.max_len, tokenizer=tokenizer, config=config
     )
 
     use_pin_mem = config.device.startswith("cuda")

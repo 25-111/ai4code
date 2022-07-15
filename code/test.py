@@ -19,8 +19,14 @@ def main():
     print("Loading Data..: Start")
     df_test, df_test_md, df_test_py = preprocess(config)
 
+    if config.data_type == "all":
+        df_test_ = df_test
+    elif config.data_type == "md":
+        df_test_ = df_test_md
+    elif config.data_type == "py":
+        df_test_ = df_test_py
     testset = NotebookDataset(
-        df_test_md, max_len=config.max_len, tokenizer=tokenizer, config=config
+        df_test_, max_len=config.max_len, tokenizer=tokenizer, config=config
     )
     testloader = DataLoader(
         testset,
@@ -36,10 +42,13 @@ def main():
     print("Testing..: Done!")
 
     print("Creating submission..: Start")
-    df_test.loc[df_test["cell_type"] == "markdown", "pred"] = y_test
+    df_submission_ = df_test.copy()
+    df_submission_.loc[
+        df_submission_["cell_type"] == "markdown", "pred"
+    ] = y_test
 
     df_submission = (
-        df_test.sort_values("pred")
+        df_submission_.sort_values("pred")
         .groupby("id")["cell_id"]
         .apply(lambda x: " ".join(x))
         .reset_index()

@@ -10,6 +10,9 @@ class Config:
     input_dir = Path("../input/AI4Code/")
     working_dir = Path("../working/")
 
+    # Data
+    data_type = ["all", "md", "py"][2]
+
     # Model
     prev_model = Path("codebert-base/codebert-base.pth")
     adjustment = "scaler"
@@ -30,7 +33,7 @@ class Config:
     timestamp = datetime.now(timezone("Asia/Seoul")).strftime("%m%d-%H%M")
     base_model = "codebert" if "codebert" in str(prev_model) else "codet5"
     trial_name = (
-        f"{timestamp}-{base_model}-from({str(prev_model)[:9]})"
+        f"{timestamp}-{base_model}-{data_type}-from({str(prev_model)[:9]})"
         if not str(prev_model).endswith("base.pth")
         else f"{timestamp}-{base_model}-from({base_model}-base)"
     )

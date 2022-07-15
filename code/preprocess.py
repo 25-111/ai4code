@@ -84,6 +84,8 @@ def preprocess(config):
             df_valid_md.to_csv(config.input_dir / "valid_md.csv", index=False)
 
             return (
+                df_train,
+                df_valid,
                 df_train_md,
                 df_valid_md,
                 df_train_py,
