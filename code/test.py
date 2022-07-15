@@ -38,17 +38,19 @@ def main():
     print("Loading Data..: Done!")
 
     print("Testing..: Start")
-    _, y_test = test(model, testloader, config)
+    y_test = test(model, testloader, config)
     print("Testing..: Done!")
 
     print("Creating submission..: Start")
-    df_submission_ = df_test.copy()
-    df_submission_.loc[
-        df_submission_["cell_type"] == "markdown", "pred"
-    ] = y_test
+    if config.data_type == "all":
+        df_test["pred"] = y_test
+    elif config.data_type == "md":
+        df_test.loc[df_test["cell_type"] == "markdown", "pred"] = y_test
+    elif config.data_type == "py":
+        df_test.loc[df_test["cell_type"] == "code", "pred"] = y_test
 
     df_submission = (
-        df_submission_.sort_values("pred")
+        df_test.sort_values("pred")
         .groupby("id")["cell_id"]
         .apply(lambda x: " ".join(x))
         .reset_index()
@@ -56,7 +58,8 @@ def main():
     df_submission.rename(columns={"cell_id": "cell_order"}, inplace=True)
 
     df_submission.to_csv(
-        f"output/submission_{config.timestamp}.csv", index=False
+        f"output/submission_{str(config.prev_model).split('/')[0]}.csv",
+        index=False,
     )
     print("Creating submission..: Done!")
 
@@ -66,20 +69,18 @@ def test(model, dataloader, config):
 
     tbar = tqdm(dataloader, total=len(dataloader))
 
-    preds, labels = [], []
+    preds = []
     with torch.no_grad():
         for _, data in enumerate(tbar):
             ids = data[0].to(config.device)
             mask = data[1].to(config.device)
             ttis = data[2].to(config.device)
-            targets = data[-1].to(config.device)
 
             pred = model(ids=ids, mask=mask, token_type_ids=ttis).view(-1)
 
-            labels.append(targets.detach().cpu().numpy().ravel())
             preds.append(pred.detach().cpu().numpy().ravel())
 
-    return np.concatenate(labels), np.concatenate(preds)
+    return np.concatenate(preds)
 
 
 if __name__ == "__main__":

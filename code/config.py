@@ -11,10 +11,12 @@ class Config:
     working_dir = Path("../working/")
 
     # Data
-    data_type = ["all", "md", "py"][2]
+    data_type = ["all", "md", "py"][1]
 
     # Model
-    prev_model = Path("codebert-base/codebert-base.pth")
+    prev_model = Path(
+        "0715-1730-py-codebert-from-codebert-base-scaler/ckpt_001.pth"
+    )
     adjustment = "scaler"
 
     # Train
