@@ -77,11 +77,11 @@ def preprocess(config):
             df_valid_md = df_valid[df_valid["cell_type"] == "markdown"]
 
             df_train.to_csv(config.input_dir / "train.csv", index=False)
-            df_train_py.to_csv(config.input_dir / "train_py.csv", index=False)
-            df_train_md.to_csv(config.input_dir / "train_md.csv", index=False)
             df_valid.to_csv(config.input_dir / "valid.csv", index=False)
-            df_valid_py.to_csv(config.input_dir / "valid_py.csv", index=False)
+            df_train_md.to_csv(config.input_dir / "train_md.csv", index=False)
             df_valid_md.to_csv(config.input_dir / "valid_md.csv", index=False)
+            df_train_py.to_csv(config.input_dir / "train_py.csv", index=False)
+            df_valid_py.to_csv(config.input_dir / "valid_py.csv", index=False)
 
             return (
                 df_train,
@@ -114,18 +114,22 @@ def preprocess(config):
             df_test_md = df_test[df_test["cell_type"] == "markdown"]
 
             df_test.to_csv(config.input_dir / "test.csv", index=False)
-            df_test_py.to_csv(config.input_dir / "test_py.csv", index=False)
             df_test_md.to_csv(config.input_dir / "test_md.csv", index=False)
+            df_test_py.to_csv(config.input_dir / "test_py.csv", index=False)
 
             return df_test, df_test_md, df_test_py
 
     else:
         if config.mode == "train":
-            df_train_py = pd.read_csv(config.input_dir / "train_py.csv")
+            df_train = pd.read_csv(config.input_dir / "train.csv")
+            df_valid = pd.read_csv(config.input_dir / "valid.csv")
             df_train_md = pd.read_csv(config.input_dir / "train_md.csv")
-            df_valid_py = pd.read_csv(config.input_dir / "valid_py.csv")
             df_valid_md = pd.read_csv(config.input_dir / "valid_md.csv")
+            df_train_py = pd.read_csv(config.input_dir / "train_py.csv")
+            df_valid_py = pd.read_csv(config.input_dir / "valid_py.csv")
             return (
+                df_train,
+                df_valid,
                 df_train_md,
                 df_valid_md,
                 df_train_py,
@@ -134,8 +138,8 @@ def preprocess(config):
 
         elif config.mode == "test":
             df_test = pd.read_csv(config.input_dir / "test.csv")
-            df_test_py = pd.read_csv(config.input_dir / "test_py.csv")
             df_test_md = pd.read_csv(config.input_dir / "test_md.csv")
+            df_test_py = pd.read_csv(config.input_dir / "test_py.csv")
             return df_test, df_test_md, df_test_py
 
 
