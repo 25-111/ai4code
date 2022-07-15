@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+# @Author: Yedarm Seong
+# @Date:   2022-07-06 04:27:29
+# @Last Modified by:   Yedarm Seong
+# @Last Modified time: 2022-07-16 04:33:30
+
 import gc
 import os
 from os import path as osp
@@ -6,9 +12,11 @@ import torch
 from sklearn.metrics import mean_squared_error
 from torch.cuda.amp import autocast
 from tqdm import tqdm
+from metric import calc_kendall_tau
+import wandb
 
 
-class BertTrainer:
+class RobertTrainer:
     def __init__(
         self,
         config,
@@ -50,10 +58,13 @@ class BertTrainer:
                 outputs = self.model(ids=ids, mask=mask, token_type_ids=ttis)
 
                 loss = self.criterion(outputs, targets)
-
                 loss_item = loss.item()
+
+                kendall_tau = calc_kendall_tau(outputs, targets)
+                self.wandb_log(train_kendall_tau=kendall_tau)
                 self.wandb_log(train_batch_loss=loss_item)
-                train_pbar.set_description(f"train loss: {loss_item:.4f}")
+                train_pbar.set_description(
+                    f"train loss: {loss_item:.4f}, kendall_tau: {kendall_tau:.4f}")
 
             self.scaler.scale(loss).backward()
             if bnum % self.config.accum_steps == 0:
@@ -93,8 +104,12 @@ class BertTrainer:
             )
 
             valid_loss = self.criterion(outputs, targets)
+            valid_kendall_tau = calc_kendall_tau(outputs, targets)
             self.wandb_log(valid_batch_loss=valid_loss.item())
-            valid_pbar.set_description(f"val_loss: {valid_loss.item():.4f}")
+            self.wandb_log(valid_kendall_tau=valid_kendall_tau)
+            valid_pbar.set_description(
+                f"val_loss: {valid_loss.item():.4f}, kendall_tau: {kendall_tau:.4f}"
+            )
 
             valid_targets.extend(targets.cpu().detach().numpy().tolist())
             valid_preds.extend(outputs.cpu().detach().numpy().tolist())
@@ -190,6 +205,6 @@ class T5Trainer:
 
 def get_trainer(config, **kwargs):
     if config.base_model == "codebert":
-        return BertTrainer(config, **kwargs)
+        return RobertTrainer(config, **kwargs)
     elif config.base_model == "codet5":
         return T5Trainer(config, **kwargs)

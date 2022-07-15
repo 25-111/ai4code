@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+# @Author: Yedarm Seong
+# @Date:   2022-06-27 03:31:28
+# @Last Modified by:   Yedarm Seong
+# @Last Modified time: 2022-07-16 04:28:12
+
 import wandb
 from config import Config, WandbConfig
 from dataset import NotebookDataset
@@ -11,6 +17,7 @@ from train_utils import (
     yield_scheduler,
 )
 from trainer import get_trainer
+import pandas as pd
 
 
 def main():
@@ -30,6 +37,19 @@ def main():
         df_train_py,
         df_valid_py,
     ) = preprocess(config)
+
+    # additional data
+    df_train_add = pd.read_csv(config.input_dir / "train2.csv").dropna()
+    df_train_md = pd.concat([
+        df_train_md, df_train_add[df_train_add.cell_type == "markdown"]
+    ])
+    df_train_md = pd.concat([
+        df_train_md, df_train[df_train.cell_type == "code"][:30000]
+    ])
+    df_train_md = pd.concat([
+        df_train_md, df_train_add[df_train_add.cell_type == "code"][:300000]
+    ]).drop_duplicates()
+
 
     if config.data_type == "all":
         df_train_, df_valid_ = df_train, df_valid

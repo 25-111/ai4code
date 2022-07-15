@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+# @Author: Yedarm Seong
+# @Date:   2022-06-27 03:31:28
+# @Last Modified by:   Yedarm Seong
+# @Last Modified time: 2022-07-16 04:28:23
+
 from os import path as osp
 
 import numpy as np
@@ -56,9 +62,9 @@ def preprocess(config):
                 .merge(df_ranks, on=["id", "cell_id"])
                 .merge(df_ancestors, on=["id"])
             )
-            df["pct_rank"] = df["rank"] / df.groupby("id")[
-                "cell_id"
-            ].transform("count")
+            df["pct_rank"] = (
+                df["rank"] / df.groupby("id")["cell_id"].transform("count")
+            )
 
             splitter = GroupShuffleSplit(
                 n_splits=1,

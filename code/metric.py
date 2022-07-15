@@ -11,7 +11,7 @@ def count_inversions(a):
     return inversions
 
 
-def calc_kendall_tau(ground_truth, predictions):
+def calc_kendall_tau(predictions, ground_truth):
     total_inversions = 0
     total_2max = 0
     for gt, pred in zip(ground_truth, predictions):

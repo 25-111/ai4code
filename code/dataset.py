@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+# @Author: Yedarm Seong
+# @Date:   2022-06-27 03:31:28
+# @Last Modified by:   Yedarm Seong
+# @Last Modified time: 2022-07-16 04:28:41
+
 import torch
 from torch.utils.data import Dataset
 
