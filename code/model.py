@@ -2,7 +2,7 @@
 # @Author: Yedarm Seong
 # @Date:   2022-06-27 03:31:28
 # @Last Modified by:   Yedarm Seong
-# @Last Modified time: 2022-07-16 04:28:28
+# @Last Modified time: 2022-07-16 04:38:03
 
 import torch
 import torch.nn as nn
@@ -18,7 +18,7 @@ def get_model(config):
             do_lower_case=False,
             is_split_into_words=True,
         )
-        model = RobertBased(
+        model = RobertaBased(
             tx.AutoModel.from_pretrained("microsoft/codebert-base")
         )
     elif config.base_model == "codet5":
@@ -38,12 +38,12 @@ def get_model(config):
 
     if config.mode == "train":
         model = DataParallel(
-            model, device_ids=[i for i in torch.cuda.device_count()]
+            model, device_ids=[i for i in range(torch.cuda.device_count())]
         )
     return tokenizer, model.to(config.device)
 
 
-class RobertBased(nn.Module):
+class RobertaBased(nn.Module):
     def __init__(self, pretrained_model, dropout_rate=0.5):
         super().__init__()
         self.model = pretrained_model

@@ -2,7 +2,7 @@
 # @Author: Yedarm Seong
 # @Date:   2022-07-06 04:27:29
 # @Last Modified by:   Yedarm Seong
-# @Last Modified time: 2022-07-16 04:33:30
+# @Last Modified time: 2022-07-16 04:37:54
 
 import gc
 import os
@@ -16,7 +16,7 @@ from metric import calc_kendall_tau
 import wandb
 
 
-class RobertTrainer:
+class RobertaTrainer:
     def __init__(
         self,
         config,
@@ -205,6 +205,6 @@ class T5Trainer:
 
 def get_trainer(config, **kwargs):
     if config.base_model == "codebert":
-        return RobertTrainer(config, **kwargs)
+        return RobertaTrainer(config, **kwargs)
     elif config.base_model == "codet5":
         return T5Trainer(config, **kwargs)
