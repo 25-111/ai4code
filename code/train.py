@@ -32,16 +32,16 @@ def main():
     ) = preprocess(config)
 
     if config.data_type == "all":
-        df_train_, df_valid_ = df_train, df_valid
+        df_trainset, df_validset = df_train, df_valid
     elif config.data_type == "md":
-        df_train_, df_valid_ = df_train_md, df_valid_md
+        df_trainset, df_validset = df_train_md, df_valid_md
     elif config.data_type == "py":
-        df_train_, df_valid_ = df_train_py, df_valid_py
+        df_trainset, df_validset = df_train_py, df_valid_py
     trainset = NotebookDataset(
-        df_train_, max_len=config.max_len, tokenizer=tokenizer, config=config
+        df_trainset, max_len=config.max_len, tokenizer=tokenizer, config=config
     )
     validset = NotebookDataset(
-        df_valid_, max_len=config.max_len, tokenizer=tokenizer, config=config
+        df_validset, max_len=config.max_len, tokenizer=tokenizer, config=config
     )
 
     use_pin_mem = config.device.startswith("cuda")
@@ -68,11 +68,11 @@ def main():
 
     print("Training..: Start")
     run = wandb.init(
+        dir=config.working_dir,
+        config=wandb_config,
         project="ai4code",
         entity="25111",
         name=config.trial_name,
-        config=wandb_config,
-        dir=config.working_dir,
     )
 
     trainer = get_trainer(

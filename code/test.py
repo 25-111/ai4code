@@ -20,13 +20,13 @@ def main():
     df_test, df_test_md, df_test_py = preprocess(config)
 
     if config.data_type == "all":
-        df_test_ = df_test
+        df_testset = df_test
     elif config.data_type == "md":
-        df_test_ = df_test_md
+        df_testset = df_test_md
     elif config.data_type == "py":
-        df_test_ = df_test_py
+        df_testset = df_test_py
     testset = NotebookDataset(
-        df_test_, max_len=config.max_len, tokenizer=tokenizer, config=config
+        df_testset, max_len=config.max_len, tokenizer=tokenizer, config=config
     )
     testloader = DataLoader(
         testset,
