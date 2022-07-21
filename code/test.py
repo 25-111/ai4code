@@ -3,7 +3,7 @@ import torch
 from config import Config
 from dataset import NotebookDataset
 from model import get_model
-from preprocess import preprocess
+from preprocess import get_features, preprocess
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
@@ -25,8 +25,14 @@ def main():
         df_testset = df_test_md
     elif config.data_type == "py":
         df_testset = df_test_py
+    fts_test = get_features(df_testset)
+
     testset = NotebookDataset(
-        df_testset, max_len=config.max_len, tokenizer=tokenizer, config=config
+        df_testset,
+        max_len=config.max_len,
+        tokenizer=tokenizer,
+        fts=fts_test,
+        config=config,
     )
     testloader = DataLoader(
         testset,
@@ -74,9 +80,9 @@ def test(model, dataloader, config):
         for _, data in enumerate(tbar):
             ids = data[0].to(config.device)
             mask = data[1].to(config.device)
-            ttis = data[2].to(config.device)
+            fts = data[2].to(config.device)
 
-            pred = model(ids=ids, mask=mask, token_type_ids=ttis).view(-1)
+            pred = model(ids=ids, mask=mask, fts=fts).view(-1)
 
             preds.append(pred.detach().cpu().numpy().ravel())
 

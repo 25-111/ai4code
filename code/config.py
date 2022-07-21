@@ -11,27 +11,30 @@ class Config:
     working_dir = Path("../working/")
 
     # Data
-    data_type = ["all", "md", "py"][1]
+    data_type = "md"
 
     # Model
-    prev_model = Path("codebert-base/codebert-base.pth")
-    adjustment = "scaler-accum_2"
+    prev_model = Path("graphcodebert-base/graphcodebert-base.pth")
+    adjustment = "scaler"
 
     # Train
     optim = ["AdamW"][0]
     loss = ["MSE"][0]
     valid_ratio = 0.1
     max_len = 256
-    num_epochs = 10
+    num_epochs = 2
     num_workers = 8
     batch_size = 192
     lr = 3e-4
-    accum_steps = 2
+    accum_steps = 4
     seed = 42
 
     # Log
     timestamp = datetime.now(timezone("Asia/Seoul")).strftime("%m%d-%H%M")
-    base_model = "codebert" if "codebert" in str(prev_model) else "codet5"
+    try:
+        base_model = str(prev_model).split("/")[0].split("-")[3]
+    except:
+        base_model = str(prev_model).split("/")[0].split("-")[0]
     trial_name = (
         f"{timestamp}-{data_type}-{base_model}-from-{str(prev_model)[:9]}"
         if not str(prev_model).endswith("base.pth")

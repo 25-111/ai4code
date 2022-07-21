@@ -2,7 +2,7 @@ import wandb
 from config import Config, WandbConfig
 from dataset import NotebookDataset
 from model import get_model
-from preprocess import preprocess
+from preprocess import get_features, preprocess
 from torch.utils.data import DataLoader
 from train_utils import (
     yield_criterion,
@@ -10,7 +10,7 @@ from train_utils import (
     yield_scaler,
     yield_scheduler,
 )
-from trainer import get_trainer
+from trainer import Trainer
 
 
 def main():
@@ -37,11 +37,21 @@ def main():
         df_trainset, df_validset = df_train_md, df_valid_md
     elif config.data_type == "py":
         df_trainset, df_validset = df_train_py, df_valid_py
+    fts_train, fts_valid = get_features(df_trainset), get_features(df_validset)
+
     trainset = NotebookDataset(
-        df_trainset, max_len=config.max_len, tokenizer=tokenizer, config=config
+        df_trainset,
+        max_len=config.max_len,
+        tokenizer=tokenizer,
+        fts=fts_train,
+        config=config,
     )
     validset = NotebookDataset(
-        df_validset, max_len=config.max_len, tokenizer=tokenizer, config=config
+        df_validset,
+        max_len=config.max_len,
+        tokenizer=tokenizer,
+        fts=fts_valid,
+        config=config,
     )
 
     use_pin_mem = config.device.startswith("cuda")
@@ -75,7 +85,7 @@ def main():
         name=config.trial_name,
     )
 
-    trainer = get_trainer(
+    trainer = Trainer(
         config,
         dataloaders=[train_loader, valid_loader],
         model=model,

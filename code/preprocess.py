@@ -174,3 +174,18 @@ def sample_cells(cells, sample_size=20):
         if cells[-1] not in samples:
             samples[-1] = cells[-1]
         return samples
+
+
+def get_features(df):
+    features = {}
+    df = df.sort_values("rank").reset_index(drop=True)
+    for idx, sub_df in tqdm(df.groupby("id")):
+        features[idx] = {}
+        total_md = sub_df[sub_df.cell_type == "markdown"].shape[0]
+        code_sub_df = sub_df[sub_df.cell_type == "code"]
+        total_code = code_sub_df.shape[0]
+        codes = sample_cells(code_sub_df.source.values, 20)
+        features[idx]["total_code"] = total_code
+        features[idx]["total_md"] = total_md
+        features[idx]["codes"] = codes
+    return features
