@@ -15,6 +15,7 @@ class Config:
 
     # Model
     prev_model = Path("graphcodebert-base/graphcodebert-base.pth")
+    # prev_model = Path("codebert-base/codebert-base.pth")
     adjustment = "scaler"
 
     # Train

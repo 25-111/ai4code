@@ -12,10 +12,15 @@ from train_utils import (
 )
 from trainer import Trainer
 
+MODEL_NAME = "codet5"
+
 
 def main():
     config, wandb_config = Config(), WandbConfig()
     config.mode = "train"
+
+    config.trial_name = f"{MODEL_NAME}-base"
+    config.base_model = MODEL_NAME
 
     print("Loading Model..: Start")
     tokenizer, model = get_model(config)
@@ -96,7 +101,10 @@ def main():
         logger=run,
     )
 
-    trainer.train(epochs=config.num_epochs)
+    trainer.save_model(
+        f"{config.working_dir}/{MODEL_NAME}/{MODEL_NAME}-base/",
+        f"{MODEL_NAME}-base.pth",
+    )
     print("Training..: Done!")
 
     print("Logging to WandB..: Start")

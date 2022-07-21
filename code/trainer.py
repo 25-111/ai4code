@@ -21,7 +21,7 @@ class Trainer:
         logger,
     ):
         self.config = config
-        self.trainloader, self.validloader = dataloaders
+        self.train_loader, self.valid_loader = dataloaders
         self.model = model
         self.optimizer = optimizer
         self.criterion = criterion
@@ -35,7 +35,7 @@ class Trainer:
         """
         self.model.train()
         train_pbar = tqdm(
-            enumerate(self.trainloader), total=len(self.trainloader)
+            enumerate(self.train_loader), total=len(self.train_loader)
         )
         train_preds, train_targets = [], []
 
@@ -77,7 +77,7 @@ class Trainer:
         """
         self.model.eval()
         valid_pbar = tqdm(
-            enumerate(self.validloader), total=len(self.validloader)
+            enumerate(self.valid_loader), total=len(self.valid_loader)
         )
         valid_preds, valid_targets = [], []
 
