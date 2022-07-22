@@ -3,7 +3,7 @@ import torch
 from config import Config
 from dataset import NotebookDataset
 from model import get_model
-from preprocess import get_features, preprocess
+from preprocess import preprocess
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
@@ -17,7 +17,7 @@ def main():
     print("Loading Model..: Done!")
 
     print("Loading Data..: Start")
-    df_test, df_test_md, df_test_py = preprocess(config)
+    df_test, df_test_md, df_test_py, fts_test = preprocess(config)
 
     if config.data_type == "all":
         df_testset = df_test
@@ -25,14 +25,8 @@ def main():
         df_testset = df_test_md
     elif config.data_type == "py":
         df_testset = df_test_py
-    fts_test = get_features(df_testset)
 
-    testset = NotebookDataset(
-        df_testset,
-        max_len=config.max_len,
-        fts=fts_test,
-        config=config,
-    )
+    testset = NotebookDataset(df_testset, fts=fts_test, config=config)
     testloader = DataLoader(
         testset,
         batch_size=config.batch_size,

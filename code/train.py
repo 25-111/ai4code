@@ -1,3 +1,4 @@
+import wandb
 from config import Config, WandbConfig
 from dataset import NotebookDataset
 from model import get_model
@@ -10,8 +11,6 @@ from train_utils import (
     yield_scheduler,
 )
 from trainer import Trainer
-
-import wandb
 
 
 def main():
@@ -42,16 +41,8 @@ def main():
     elif config.data_type == "py":
         df_trainset, df_validset = df_train_py, df_valid_py
 
-    trainset = NotebookDataset(
-        df_trainset,
-        fts=fts_train,
-        config=config,
-    )
-    validset = NotebookDataset(
-        df_validset,
-        fts=fts_valid,
-        config=config,
-    )
+    trainset = NotebookDataset(df_trainset, fts=fts_train, config=config)
+    validset = NotebookDataset(df_validset, fts=fts_valid, config=config)
 
     use_pin_mem = config.device.startswith("cuda")
     trainloader = DataLoader(
