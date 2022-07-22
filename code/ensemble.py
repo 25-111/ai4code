@@ -6,12 +6,12 @@ import pandas as pd
 def main():
     print("Ensemble..: Start")
     dfs = [
-        pd.read_csv(f"output/{df_file}") for df_file in os.listdir("output/")
+        pd.read_csv(f"output/{csv_file}") for csv_file in os.listdir("output/")
     ]
-    df_1, num_dfs = dfs[0], len(dfs)
+    df_1, len_df_1, num_dfs = dfs[0], len(dfs[0]), len(dfs)
 
     ensembled_order = []
-    for idx in range(len(df_1)):
+    for idx in range(len_df_1):
         ensembled_sample = {
             k: v / num_dfs  # TBD weighted based on performance?
             for v, k in enumerate(df_1.iloc[idx]["cell_order"].split(" "))

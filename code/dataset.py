@@ -1,37 +1,37 @@
 import torch
 from torch.utils.data import Dataset
 
-
-def read_data(data, config):
-    return (d.to(config.device) for d in data[:-1]), data[-1].to(config.device)
+import transformers as tx
 
 
 class NotebookDataset(Dataset):
-    def __init__(self, df, max_len, tokenizer, fts, config):
+    def __init__(self, df, fts, config):
         super().__init__()
+
         self.df = df.reset_index(drop=True)
-        self.max_len = max_len
-        self.tokenizer = tokenizer
         self.fts = fts
         self.config = config
+
+        self.tokenizer = tx.AutoTokenizer.from_pretrained(config.model_path)
 
     def __getitem__(self, idx):
         item = self.df.iloc[idx]
 
         inputs = self.tokenizer.encode_plus(
             item.source,
+            None,
             add_special_tokens=True,
             padding="max_length",
             truncation=True,
             return_token_type_ids=True,
-            max_length=self.max_len,
+            max_length=self.config.max_len,
         )
         code_inputs = self.tokenizer.batch_encode_plus(
             [str(x) for x in self.fts[item.id]["codes"]],
             add_special_tokens=True,
             padding="max_length",
             truncation=True,
-            max_length=self.max_len,
+            max_length=23,
         )
 
         n_md = self.fts[item.id]["total_md"]

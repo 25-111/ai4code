@@ -1,3 +1,4 @@
+import json
 from os import path as osp
 
 import numpy as np
@@ -8,10 +9,10 @@ from tqdm import tqdm
 
 def preprocess(config):
     if not osp.exists(config.input_dir / f"{config.mode}.csv"):
-        data_pth = list((config.input_dir / config.mode).glob("*.json"))
+        data_path = list((config.input_dir / config.mode).glob("*.json"))
         notebooks = [
             read_notebook(path)
-            for path in tqdm(data_pth, desc="Reading notebooks")
+            for path in tqdm(data_path, desc="Reading notebooks")
         ]
 
         df = (
@@ -20,7 +21,6 @@ def preprocess(config):
             .swaplevel()
             .sort_index(level="id", sort_remaining=False)
         )
-        print(config.mode)
 
         if config.mode == "train":
             df_orders = pd.read_csv(
@@ -68,13 +68,37 @@ def preprocess(config):
             idx_train, idx_valid = next(
                 splitter.split(df, groups=df["ancestor_id"])
             )
+
             df_train = df.loc[idx_train].reset_index(drop=True).dropna()
             df_valid = df.loc[idx_valid].reset_index(drop=True).dropna()
 
-            df_train_py = df_train[df_train["cell_type"] == "code"]
-            df_valid_py = df_valid[df_valid["cell_type"] == "code"]
-            df_train_md = df_train[df_train["cell_type"] == "markdown"]
-            df_valid_md = df_valid[df_valid["cell_type"] == "markdown"]
+            df_train_py = (
+                df_train[df_train["cell_type"] == "code"]
+                .drop("parent_id", axis=1)
+                .dropna()
+                .reset_index(drop=True)
+            )
+            df_valid_py = (
+                df_valid[df_valid["cell_type"] == "code"]
+                .drop("parent_id", axis=1)
+                .dropna()
+                .reset_index(drop=True)
+            )
+            df_train_md = (
+                df_train[df_train["cell_type"] == "markdown"]
+                .drop("parent_id", axis=1)
+                .dropna()
+                .reset_index(drop=True)
+            )
+            df_valid_md = (
+                df_valid[df_valid["cell_type"] == "markdown"]
+                .drop("parent_id", axis=1)
+                .dropna()
+                .reset_index(drop=True)
+            )
+
+            fts_train = get_features(df_train)
+            fts_valid = get_features(df_valid)
 
             df_train.to_csv(config.input_dir / "train.csv", index=False)
             df_valid.to_csv(config.input_dir / "valid.csv", index=False)
@@ -82,6 +106,12 @@ def preprocess(config):
             df_valid_md.to_csv(config.input_dir / "valid_md.csv", index=False)
             df_train_py.to_csv(config.input_dir / "train_py.csv", index=False)
             df_valid_py.to_csv(config.input_dir / "valid_py.csv", index=False)
+            json.dump(
+                open(config.input_dir / "train_fts.json", "w"), fts_train
+            )
+            json.dump(
+                open(config.input_dir / "valid_fts.json", "w"), fts_valid
+            )
 
             return (
                 df_train,
@@ -90,6 +120,9 @@ def preprocess(config):
                 df_valid_md,
                 df_train_py,
                 df_valid_py,
+                fts_train,
+                fts_valid,
+                df_orders,
             )
 
         elif config.mode == "test":
@@ -100,7 +133,7 @@ def preprocess(config):
                     .swaplevel()
                     .sort_index(level="id", sort_remaining=False)
                 )
-                .reset_index()
+                .reset_index(drop=True)
                 .dropna()
             )
 
@@ -110,23 +143,59 @@ def preprocess(config):
             ].rank(pct=True)
             df_test["pct_rank"] = 0
 
-            df_test_py = df_test[df_test["cell_type"] == "code"]
-            df_test_md = df_test[df_test["cell_type"] == "markdown"]
+            df_test_py = (
+                df_test[df_test["cell_type"] == "code"]
+                .drop("parent_id", axis=1)
+                .dropna()
+                .reset_index(drop=True)
+            )
+            df_test_md = (
+                df_test[df_test["cell_type"] == "markdown"]
+                .drop("parent_id", axis=1)
+                .dropna()
+                .reset_index(drop=True)
+            )
+
+            fts_test = get_features(df_test)
 
             df_test.to_csv(config.input_dir / "test.csv", index=False)
             df_test_md.to_csv(config.input_dir / "test_md.csv", index=False)
             df_test_py.to_csv(config.input_dir / "test_py.csv", index=False)
+            json.dump(open(config.input_dir / "test_fts.json", "w"), fts_test)
 
-            return df_test, df_test_md, df_test_py
+            return df_test, df_test_md, df_test_py, fts_test
 
     else:
         if config.mode == "train":
-            df_train = pd.read_csv(config.input_dir / "train.csv")
-            df_valid = pd.read_csv(config.input_dir / "valid.csv")
-            df_train_md = pd.read_csv(config.input_dir / "train_md.csv")
-            df_valid_md = pd.read_csv(config.input_dir / "valid_md.csv")
-            df_train_py = pd.read_csv(config.input_dir / "train_py.csv")
-            df_valid_py = pd.read_csv(config.input_dir / "valid_py.csv")
+            df_train = pd.read_csv(config.input_dir / "train.csv").reset_index(
+                drop=True
+            )
+            df_valid = pd.read_csv(config.input_dir / "valid.csv").reset_index(
+                drop=True
+            )
+            df_train_md = pd.read_csv(
+                config.input_dir / "train_md.csv"
+            ).reset_index(drop=True)
+            df_valid_md = pd.read_csv(
+                config.input_dir / "valid_md.csv"
+            ).reset_index(drop=True)
+            df_train_py = pd.read_csv(
+                config.input_dir / "train_py.csv"
+            ).reset_index(drop=True)
+            df_valid_py = pd.read_csv(
+                config.input_dir / "valid_py.csv"
+            ).reset_index(drop=True)
+            fts_train = json.load(
+                open(config.input_dir / "train_fts.json", "r")
+            )
+            fts_valid = json.load(
+                open(config.input_dir / "valid_fts.json", "r")
+            )
+            df_orders = pd.read_csv(
+                config.input_dir / "train_orders.csv",
+                index_col="id",
+                squeeze=True,
+            ).str.split()
             return (
                 df_train,
                 df_valid,
@@ -134,13 +203,23 @@ def preprocess(config):
                 df_valid_md,
                 df_train_py,
                 df_valid_py,
+                fts_train,
+                fts_valid,
+                df_orders,
             )
 
         elif config.mode == "test":
-            df_test = pd.read_csv(config.input_dir / "test.csv")
-            df_test_md = pd.read_csv(config.input_dir / "test_md.csv")
-            df_test_py = pd.read_csv(config.input_dir / "test_py.csv")
-            return df_test, df_test_md, df_test_py
+            df_test = pd.read_csv(config.input_dir / "test.csv").reset_index(
+                drop=True
+            )
+            df_test_md = pd.read_csv(
+                config.input_dir / "test_md.csv"
+            ).reset_index(drop=True)
+            df_test_py = pd.read_csv(
+                config.input_dir / "test_py.csv"
+            ).reset_index(drop=True)
+            fts_test = json.load(open(config.input_dir / "test_fts.json", "r"))
+            return df_test, df_test_md, df_test_py, fts_test
 
 
 def read_notebook(path):
@@ -180,12 +259,13 @@ def get_features(df):
     features = {}
     df = df.sort_values("rank").reset_index(drop=True)
     for idx, sub_df in tqdm(df.groupby("id")):
-        features[idx] = {}
         total_md = sub_df[sub_df.cell_type == "markdown"].shape[0]
         code_sub_df = sub_df[sub_df.cell_type == "code"]
         total_code = code_sub_df.shape[0]
         codes = sample_cells(code_sub_df.source.values, 20)
-        features[idx]["total_code"] = total_code
-        features[idx]["total_md"] = total_md
-        features[idx]["codes"] = codes
+        features[idx] = {
+            "total_code": total_code,
+            "total_md": total_md,
+            "codes": codes,
+        }
     return features

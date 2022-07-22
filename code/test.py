@@ -13,7 +13,7 @@ def main():
     config.mode = "test"
 
     print("Loading Model..: Start")
-    tokenizer, model = get_model(config)
+    model = get_model(config)
     print("Loading Model..: Done!")
 
     print("Loading Data..: Start")
@@ -30,7 +30,6 @@ def main():
     testset = NotebookDataset(
         df_testset,
         max_len=config.max_len,
-        tokenizer=tokenizer,
         fts=fts_test,
         config=config,
     )

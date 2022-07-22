@@ -6,19 +6,7 @@ import transformers as tx
 
 
 def get_model(config):
-    if config.base_model == "codebert":
-        model_path = "microsoft/codebert-base"
-    elif config.base_model == "graphcodebert":
-        model_path = "microsoft/graphcodebert-base"
-    elif config.base_model == "codet5":
-        model_path = "Salesforce/codet5-base"
-
-    tokenizer = tx.AutoTokenizer.from_pretrained(
-        model_path,
-        do_lower_case=False,
-        is_split_into_words=True,
-    )
-    model = NotebookArranger(tx.AutoModel.from_pretrained(model_path))
+    model = NotebookArranger(tx.AutoModel.from_pretrained(config.model_path))
 
     try:
         model.load_state_dict(
@@ -33,7 +21,7 @@ def get_model(config):
 
     if config.mode == "train":
         model = DataParallel(model, device_ids=[0, 1, 2, 3])
-    return tokenizer, model.to(config.device)
+    return model.to(config.device)
 
 
 class NotebookArranger(nn.Module):

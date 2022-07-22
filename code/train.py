@@ -1,8 +1,7 @@
-import wandb
 from config import Config, WandbConfig
 from dataset import NotebookDataset
 from model import get_model
-from preprocess import get_features, preprocess
+from preprocess import preprocess
 from torch.utils.data import DataLoader
 from train_utils import (
     yield_criterion,
@@ -12,13 +11,15 @@ from train_utils import (
 )
 from trainer import Trainer
 
+import wandb
+
 
 def main():
     config, wandb_config = Config(), WandbConfig()
     config.mode = "train"
 
     print("Loading Model..: Start")
-    tokenizer, model = get_model(config)
+    model = get_model(config)
     print("Loading Model..: Done!")
 
     print("Loading Data..: Start")
@@ -29,6 +30,9 @@ def main():
         df_valid_md,
         df_train_py,
         df_valid_py,
+        fts_train,
+        fts_valid,
+        df_orders,
     ) = preprocess(config)
 
     if config.data_type == "all":
@@ -37,35 +41,34 @@ def main():
         df_trainset, df_validset = df_train_md, df_valid_md
     elif config.data_type == "py":
         df_trainset, df_validset = df_train_py, df_valid_py
-    fts_train, fts_valid = get_features(df_trainset), get_features(df_validset)
 
     trainset = NotebookDataset(
         df_trainset,
-        max_len=config.max_len,
-        tokenizer=tokenizer,
         fts=fts_train,
         config=config,
     )
     validset = NotebookDataset(
         df_validset,
-        max_len=config.max_len,
-        tokenizer=tokenizer,
         fts=fts_valid,
         config=config,
     )
 
     use_pin_mem = config.device.startswith("cuda")
-    train_loader = DataLoader(
+    trainloader = DataLoader(
         trainset,
         batch_size=config.batch_size,
         shuffle=True,
+        num_workers=config.num_workers,
         pin_memory=use_pin_mem,
+        drop_last=True,
     )
-    valid_loader = DataLoader(
+    validloader = DataLoader(
         validset,
         batch_size=config.batch_size,
         shuffle=False,
+        num_workers=config.num_workers,
         pin_memory=use_pin_mem,
+        drop_last=False,
     )
     print("Loading Data..: Done!")
 
@@ -87,12 +90,14 @@ def main():
 
     trainer = Trainer(
         config,
-        dataloaders=[train_loader, valid_loader],
+        dataloaders=[trainloader, validloader],
         model=model,
         optimizer=optimizer,
         criterion=criterion,
         scheduler=scheduler,
         scaler=scaler,
+        df_valid=df_valid,
+        df_orders=df_orders,
         logger=run,
     )
 

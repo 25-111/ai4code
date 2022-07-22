@@ -1,4 +1,5 @@
-import wandb
+import argparse
+
 from config import Config, WandbConfig
 from dataset import NotebookDataset
 from model import get_model
@@ -12,15 +13,23 @@ from train_utils import (
 )
 from trainer import Trainer
 
-MODEL_NAME = "codet5"
+import wandb
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("model_name", type=str)
+    return parser.parse_args()
 
 
 def main():
+    args = parse_args()
+
     config, wandb_config = Config(), WandbConfig()
     config.mode = "train"
 
-    config.trial_name = f"{MODEL_NAME}-base"
-    config.base_model = MODEL_NAME
+    config.trial_name = f"{args.model_name}-base"
+    config.base_model = args.model_name
 
     print("Loading Model..: Start")
     tokenizer, model = get_model(config)
@@ -92,7 +101,7 @@ def main():
 
     trainer = Trainer(
         config,
-        dataloaders=[train_loader, valid_loader],
+        df_trainset=[train_loader, valid_loader],
         model=model,
         optimizer=optimizer,
         criterion=criterion,
@@ -102,8 +111,8 @@ def main():
     )
 
     trainer.save_model(
-        f"{config.working_dir}/{MODEL_NAME}/{MODEL_NAME}-base/",
-        f"{MODEL_NAME}-base.pth",
+        f"{config.working_dir}/{args.model_name}/{args.model_name}-base/",
+        f"{args.model_name}-base.pth",
     )
     print("Training..: Done!")
 

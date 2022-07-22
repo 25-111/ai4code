@@ -14,16 +14,17 @@ class Config:
     data_type = "md"
 
     # Model
-    prev_model = Path("graphcodebert-base/graphcodebert-base.pth")
-    # prev_model = Path("codebert-base/codebert-base.pth")
-    adjustment = "scaler"
+    prev_model = Path("codebert-base/codebert-base.pth")
+    # prev_model = Path("codet5-base/codet5-base.pth")
+    # prev_model = Path("graphcodebert-base/graphcodebert-base.pth")
+    adjustment = "scaler-fts"
 
     # Train
     optim = ["AdamW"][0]
     loss = ["MSE"][0]
     valid_ratio = 0.1
-    max_len = 256
-    num_epochs = 2
+    max_len = 512
+    num_epochs = 3
     num_workers = 8
     batch_size = 192
     lr = 3e-4
@@ -42,6 +43,13 @@ class Config:
         else f"{timestamp}-{data_type}-{base_model}-from-{base_model}-base"
     )
     trial_name += f"-{adjustment}" if adjustment else ""
+
+    if base_model == "codebert":
+        model_path = "microsoft/codebert-base"
+    elif base_model == "graphcodebert":
+        model_path = "microsoft/graphcodebert-base"
+    elif base_model == "codet5":
+        model_path = "Salesforce/codet5-base"
 
 
 class WandbConfig:
