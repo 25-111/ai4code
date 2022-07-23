@@ -23,7 +23,9 @@ class Config:
     optim = ["AdamW"][0]
     loss = ["MSE"][0]
     valid_ratio = 0.1
-    max_len = 512
+    md_max_len = 128
+    py_max_len = 23
+    total_max_len = 512
     num_epochs = 3
     num_workers = 8
     batch_size = 192
@@ -38,9 +40,9 @@ class Config:
     except:
         base_model = str(prev_model).split("/")[0].split("-")[0]
     trial_name = (
-        f"{timestamp}-{data_type}-{base_model}-from-{str(prev_model)[:9]}"
+        f"{timestamp}-{data_type}-{base_model}-fts-from-{str(prev_model)[:9]}"
         if not str(prev_model).endswith("base.pth")
-        else f"{timestamp}-{data_type}-{base_model}-from-{base_model}-base"
+        else f"{timestamp}-{data_type}-{base_model}-fts-from-{base_model}-base"
     )
     trial_name += f"-{adjustment}" if adjustment else ""
 
@@ -56,7 +58,9 @@ class WandbConfig:
     model = Config.prev_model
     optim = Config.optim
     loss = Config.loss
-    max_len = Config.max_len
+    md_max_len = Config.md_max_len
+    py_max_len = Config.py_max_len
+    total_max_len = Config.total_max_len
     num_epochs = Config.num_epochs
     num_workers = Config.num_workers
     batch_size = Config.batch_size

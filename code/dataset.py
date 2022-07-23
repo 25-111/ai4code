@@ -24,14 +24,14 @@ class NotebookDataset(Dataset):
             padding="max_length",
             truncation=True,
             return_token_type_ids=True,
-            max_length=self.config.max_len,
+            max_length=self.config.md_max_len,
         )
         code_inputs = self.tokenizer.batch_encode_plus(
             [str(x) for x in self.fts[item.id]["codes"]],
             add_special_tokens=True,
             padding="max_length",
             truncation=True,
-            max_length=23,
+            max_length=self.config.py_max_len,
         )
 
         n_md = self.fts[item.id]["total_md"]
@@ -45,21 +45,21 @@ class NotebookDataset(Dataset):
         ids = inputs["input_ids"]
         for x in code_inputs["input_ids"]:
             ids.extend(x[:-1])
-        ids = ids[: self.total_max_len]
-        if len(ids) != self.total_max_len:
+        ids = ids[: self.config.total_max_len]
+        if len(ids) != self.config.total_max_len:
             ids = ids + [
                 self.tokenizer.pad_token_id,
-            ] * (self.total_max_len - len(ids))
+            ] * (self.config.total_max_len - len(ids))
         ids = torch.LongTensor(ids)
 
         mask = inputs["attention_mask"]
         for x in code_inputs["attention_mask"]:
             mask.extend(x[:-1])
-        mask = mask[: self.total_max_len]
-        if len(mask) != self.total_max_len:
+        mask = mask[: self.config.total_max_len]
+        if len(mask) != self.config.total_max_len:
             mask = mask + [
                 self.tokenizer.pad_token_id,
-            ] * (self.total_max_len - len(mask))
+            ] * (self.config.total_max_len - len(mask))
         mask = torch.LongTensor(mask)
 
         if self.config.mode == "train":

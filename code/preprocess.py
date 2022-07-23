@@ -107,10 +107,10 @@ def preprocess(config):
             df_train_py.to_csv(config.input_dir / "train_py.csv", index=False)
             df_valid_py.to_csv(config.input_dir / "valid_py.csv", index=False)
             json.dump(
-                open(config.input_dir / "train_fts.json", "w"), fts_train
+                fts_train, open(config.input_dir / "train_fts.json", "w")
             )
             json.dump(
-                open(config.input_dir / "valid_fts.json", "w"), fts_valid
+                fts_valid, open(config.input_dir / "valid_fts.json", "w")
             )
 
             return (
@@ -161,7 +161,7 @@ def preprocess(config):
             df_test.to_csv(config.input_dir / "test.csv", index=False)
             df_test_md.to_csv(config.input_dir / "test_md.csv", index=False)
             df_test_py.to_csv(config.input_dir / "test_py.csv", index=False)
-            json.dump(open(config.input_dir / "test_fts.json", "w"), fts_test)
+            json.dump(fts_test, open(config.input_dir / "test_fts.json", "w"))
 
             return df_test, df_test_md, df_test_py, fts_test
 
