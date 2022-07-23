@@ -28,7 +28,7 @@ class Config:
     total_max_len = 512
     num_epochs = 3
     num_workers = 8
-    batch_size = 192
+    batch_size = 64
     lr = 3e-4
     accum_steps = 4
     seed = 42
