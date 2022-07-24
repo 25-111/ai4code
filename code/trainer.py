@@ -35,6 +35,55 @@ class Trainer:
         self.df_orders = df_orders
         self.logger = logger
 
+    def train(self, epochs):
+        self.logger.watch(self.model)
+
+        """
+        Low-effort alternative for doing the complete training and validation process
+        """
+        best_loss = int(1e9)
+        for epoch in range(epochs):
+            print(f"{'='*20} Epoch: {epoch+1} / {epochs} {'='*20}")
+
+            train_preds, train_targets = self.train_one_epoch()
+            train_mse = mean_squared_error(train_targets, train_preds)
+            print(f"Training loss: {train_mse:.4f}")
+
+            valid_preds, valid_targets = self.valid_one_epoch()
+            valid_mse = mean_squared_error(valid_targets, valid_preds)
+            print(f"Validation loss: {valid_mse:.4f}")
+
+            self.df_valid["pred"] = self.df_valid.groupby(["id", "cell_type"])[
+                "rank"
+            ].rank(pct=True)
+            self.df_valid.loc[
+                self.df_valid["cell_type"] == "markdown", "pred"
+            ] = valid_preds
+            pred_orders = (
+                self.df_valid.sort_values("pred")
+                .groupby("id")["cell_id"]
+                .apply(list)
+            )
+            kendall_tau = calc_kendall_tau(
+                self.df_orders.loc[pred_orders.index], pred_orders
+            )
+            print(f"Prediction Kendall Tau: {kendall_tau:.4f}")
+            self.wandb_log(
+                train_mse=train_mse,
+                valid_mse=valid_mse,
+                kendall_tau=kendall_tau,
+            )
+
+            if valid_mse < best_loss:
+                best_loss = valid_mse
+                save_path = (
+                    self.config.working_dir
+                    / self.config.base_model
+                    / self.config.trial_name
+                )
+                self.save_model(save_path, f"ckpt_{epoch+1:03d}.pth")
+                print(f"Saved model with val_loss: {best_loss:.4f}")
+
     def train_one_epoch(self):
         """
         Trains the model for 1 epoch
@@ -107,55 +156,6 @@ class Trainer:
         torch.cuda.empty_cache()
 
         return valid_preds, valid_targets
-
-    def train(self, epochs):
-        self.logger.watch(self.model)
-
-        """
-        Low-effort alternative for doing the complete training and validation process
-        """
-        best_loss = int(1e9)
-        for epoch in range(epochs):
-            print(f"{'='*20} Epoch: {epoch+1} / {epochs} {'='*20}")
-
-            train_preds, train_targets = self.train_one_epoch()
-            train_mse = mean_squared_error(train_targets, train_preds)
-            print(f"Training loss: {train_mse:.4f}")
-
-            valid_preds, valid_targets = self.valid_one_epoch()
-            valid_mse = mean_squared_error(valid_targets, valid_preds)
-            print(f"Validation loss: {valid_mse:.4f}")
-
-            self.df_valid["pred"] = self.df_valid.groupby(["id", "cell_type"])[
-                "rank"
-            ].rank(pct=True)
-            self.df_valid.loc[
-                self.df_valid["cell_type"] == "markdown", "pred"
-            ] = valid_targets
-            tmp_orders = (
-                self.df_valid.sort_values("pred")
-                .groupby("id")["cell_id"]
-                .apply(list)
-            )
-            kendall_tau = calc_kendall_tau(
-                self.df_orders.loc[tmp_orders.index], tmp_orders
-            )
-            print(f"Prediction Kendall Tau: {kendall_tau:.4f}")
-            self.wandb_log(
-                train_mse=train_mse,
-                valid_mse=valid_mse,
-                kendall_tau=kendall_tau,
-            )
-
-            if valid_mse < best_loss:
-                best_loss = valid_mse
-                save_path = (
-                    self.config.working_dir
-                    / self.config.base_model
-                    / self.config.trial_name
-                )
-                self.save_model(save_path, f"ckpt_{epoch+1:03d}.pth")
-                print(f"Saved model with val_loss: {best_loss:.4f}")
 
     def save_model(self, path, name, verbose=False):
         """

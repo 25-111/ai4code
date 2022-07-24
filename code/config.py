@@ -14,9 +14,9 @@ class Config:
     data_type = "md"
 
     # Model
-    prev_model = Path("codebert-base/codebert-base.pth")
+    # prev_model = Path("codebert-base/codebert-base.pth")
     # prev_model = Path("codet5-base/codet5-base.pth")
-    # prev_model = Path("graphcodebert-base/graphcodebert-base.pth")
+    prev_model = Path("graphcodebert-base/graphcodebert-base.pth")
     adjustment = "scaler-fts"
 
     # Train
