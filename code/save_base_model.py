@@ -1,8 +1,9 @@
-import wandb
+import argparse
+
 from config import Config, WandbConfig
 from dataset import NotebookDataset
 from model import get_model
-from preprocess import preprocess
+from preprocess import get_features, preprocess
 from torch.utils.data import DataLoader
 from train_utils import (
     yield_criterion,
@@ -12,13 +13,26 @@ from train_utils import (
 )
 from trainer import Trainer
 
+import wandb
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("model_name", type=str)
+    return parser.parse_args()
+
 
 def main():
+    args = parse_args()
+
     config, wandb_config = Config(), WandbConfig()
     config.mode = "train"
 
+    config.trial_name = f"{args.model_name}-base"
+    config.base_model = args.model_name
+
     print("Loading Model..: Start")
-    model = get_model(config)
+    tokenizer, model = get_model(config)
     print("Loading Model..: Done!")
 
     print("Loading Data..: Start")
@@ -29,9 +43,6 @@ def main():
         df_valid_md,
         df_train_py,
         df_valid_py,
-        fts_train,
-        fts_valid,
-        df_orders,
     ) = preprocess(config)
 
     if config.data_type == "all":
@@ -40,26 +51,35 @@ def main():
         df_trainset, df_validset = df_train_md, df_valid_md
     elif config.data_type == "py":
         df_trainset, df_validset = df_train_py, df_valid_py
+    fts_train, fts_valid = get_features(df_trainset), get_features(df_validset)
 
-    trainset = NotebookDataset(df_trainset, fts=fts_train, config=config)
-    validset = NotebookDataset(df_validset, fts=fts_valid, config=config)
+    trainset = NotebookDataset(
+        df_trainset,
+        max_len=config.max_len,
+        tokenizer=tokenizer,
+        fts=fts_train,
+        config=config,
+    )
+    validset = NotebookDataset(
+        df_validset,
+        max_len=config.max_len,
+        tokenizer=tokenizer,
+        fts=fts_valid,
+        config=config,
+    )
 
     use_pin_mem = config.device.startswith("cuda")
-    trainloader = DataLoader(
+    train_loader = DataLoader(
         trainset,
         batch_size=config.batch_size,
         shuffle=True,
-        num_workers=config.num_workers,
         pin_memory=use_pin_mem,
-        drop_last=True,
     )
-    validloader = DataLoader(
+    valid_loader = DataLoader(
         validset,
         batch_size=config.batch_size,
         shuffle=False,
-        num_workers=config.num_workers,
         pin_memory=use_pin_mem,
-        drop_last=False,
     )
     print("Loading Data..: Done!")
 
@@ -81,18 +101,19 @@ def main():
 
     trainer = Trainer(
         config,
-        dataloaders=[trainloader, validloader],
+        df_trainset=[train_loader, valid_loader],
         model=model,
         optimizer=optimizer,
         criterion=criterion,
         scheduler=scheduler,
         scaler=scaler,
-        df_valid=df_valid,
-        df_orders=df_orders,
         logger=run,
     )
 
-    trainer.train(epochs=config.num_epochs)
+    trainer.save_model(
+        f"{config.working_dir}/{args.model_name}/{args.model_name}-base/",
+        f"{args.model_name}-base.pth",
+    )
     print("Training..: Done!")
 
     print("Logging to WandB..: Start")

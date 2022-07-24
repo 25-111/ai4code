@@ -13,11 +13,11 @@ def main():
     config.mode = "test"
 
     print("Loading Model..: Start")
-    tokenizer, model = get_model(config)
+    model = get_model(config)
     print("Loading Model..: Done!")
 
     print("Loading Data..: Start")
-    df_test, df_test_md, df_test_py = preprocess(config)
+    df_test, df_test_md, df_test_py, fts_test = preprocess(config)
 
     if config.data_type == "all":
         df_testset = df_test
@@ -25,9 +25,8 @@ def main():
         df_testset = df_test_md
     elif config.data_type == "py":
         df_testset = df_test_py
-    testset = NotebookDataset(
-        df_testset, max_len=config.max_len, tokenizer=tokenizer, config=config
-    )
+
+    testset = NotebookDataset(df_testset, fts=fts_test, config=config)
     testloader = DataLoader(
         testset,
         batch_size=config.batch_size,
@@ -74,9 +73,9 @@ def test(model, dataloader, config):
         for _, data in enumerate(tbar):
             ids = data[0].to(config.device)
             mask = data[1].to(config.device)
-            ttis = data[2].to(config.device)
+            fts = data[2].to(config.device)
 
-            pred = model(ids=ids, mask=mask, token_type_ids=ttis).view(-1)
+            pred = model(ids=ids, mask=mask, fts=fts).view(-1)
 
             preds.append(pred.detach().cpu().numpy().ravel())
 

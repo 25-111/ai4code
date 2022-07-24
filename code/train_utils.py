@@ -1,6 +1,6 @@
 from torch import optim
 from torch.cuda.amp import GradScaler
-from torch.nn import MSELoss
+from torch.nn import L1Loss, MSELoss
 
 
 def yield_optimizer(model, config):
@@ -11,6 +11,8 @@ def yield_optimizer(model, config):
 def yield_criterion(config):
     if config.loss.lower() == "mse":
         return MSELoss()
+    elif config.loss.lower() == "l1":
+        return L1Loss()
 
 
 def yield_scheduler(optimizer):
