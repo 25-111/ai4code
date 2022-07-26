@@ -145,7 +145,7 @@ class Trainer:
 
             preds = self.model(ids=ids, mask=mask, fts=fts).view(-1)
 
-            loss = self.l2_loss(
+            loss = self.config.l2_weight * self.l2_loss(
                 preds, targets
             ) + self.config.l1_weight * self.l1_loss(preds, targets)
 

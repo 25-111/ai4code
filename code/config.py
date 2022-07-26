@@ -22,7 +22,7 @@ class Config:
 
     # Train
     optim = ["AdamW"][0]
-    l1_weight = 0.1
+    l2_weight, l1_weight = 1, 0.1
     valid_ratio = 0.1
     md_max_len = 128
     py_max_len = 23
