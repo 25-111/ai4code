@@ -1,5 +1,6 @@
 import argparse
 
+import wandb
 from config import Config, WandbConfig
 from dataset import NotebookDataset
 from model import get_model
@@ -12,8 +13,6 @@ from train_utils import (
     yield_scheduler,
 )
 from trainer import Trainer
-
-import wandb
 
 
 def parse_args():

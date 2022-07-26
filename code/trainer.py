@@ -68,6 +68,7 @@ class Trainer:
                 self.df_orders.loc[pred_orders.index], pred_orders
             )
             print(f"Prediction Kendall Tau: {kendall_tau:.4f}")
+
             self.wandb_log(
                 train_mse=train_mse,
                 valid_mse=valid_mse,
@@ -144,14 +145,16 @@ class Trainer:
 
             preds = self.model(ids=ids, mask=mask, fts=fts).view(-1)
 
-            valid_loss = self.criterion(preds, targets)
-            self.wandb_log(valid_batch_loss=valid_loss.item())
-            valid_pbar.set_description(f"valid loss: {valid_loss.item():.4f}")
+            loss = self.criterion(preds, targets)
+
+            loss_item = loss.item()
+            self.wandb_log(valid_batch_loss=loss_item)
+            valid_pbar.set_description(f"valid loss: {loss_item:.4f}")
 
             valid_targets.extend(targets.cpu().detach().numpy().tolist())
             valid_preds.extend(preds.cpu().detach().numpy().tolist())
 
-        del preds, targets, ids, mask, fts, valid_loss
+        del preds, targets, ids, mask, fts, loss
         gc.collect()
         torch.cuda.empty_cache()
 

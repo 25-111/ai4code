@@ -126,16 +126,7 @@ def preprocess(config):
             )
 
         elif config.mode == "test":
-            df_test = (
-                (
-                    pd.concat(notebooks)
-                    .set_index("id", append=True)
-                    .swaplevel()
-                    .sort_index(level="id", sort_remaining=False)
-                )
-                .reset_index(drop=True)
-                .dropna()
-            )
+            df_test = df.reset_index(drop=True).dropna()
 
             df_test["rank"] = df_test.groupby(["id", "cell_type"]).cumcount()
             df_test["pred"] = df_test.groupby(["id", "cell_type"])[
@@ -145,13 +136,11 @@ def preprocess(config):
 
             df_test_py = (
                 df_test[df_test["cell_type"] == "code"]
-                .drop("parent_id", axis=1)
                 .dropna()
                 .reset_index(drop=True)
             )
             df_test_md = (
                 df_test[df_test["cell_type"] == "markdown"]
-                .drop("parent_id", axis=1)
                 .dropna()
                 .reset_index(drop=True)
             )

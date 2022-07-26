@@ -4,12 +4,6 @@ metric:
   goal: minimize
   name: val_loss
 parameters:
-  hidden_size:
-    values: [96, 128, 148]
-  layer_1_size:
-    values: [10, 12, 14, 16, 18, 20]
-  layer_2_size:
-    values: [24, 28, 32, 36, 40, 44]
   learning_rate:
     values: [0.001, 0.01, 0.003]
   decay:

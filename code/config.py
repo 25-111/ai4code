@@ -1,12 +1,13 @@
 from datetime import datetime
 from pathlib import Path
 
+import torch
 from pytz import timezone
 
 
 class Config:
     # Defaults
-    device = "cuda"
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     input_dir = Path("../input/AI4Code/")
     working_dir = Path("../working/")
 
@@ -14,14 +15,12 @@ class Config:
     data_type = "md"
 
     # Model
-    # prev_model = Path("codebert-base/codebert-base.pth")
-    # prev_model = Path("codet5-base/codet5-base.pth")
-    prev_model = Path("graphcodebert-base/graphcodebert-base.pth")
+    prev_model = Path("codebert/codebert-base.pth")
     adjustment = "scaler-fts"
 
     # Train
     optim = ["AdamW"][0]
-    loss = ["MSE"][0]
+    loss = ["MSE", "L1"][0]
     valid_ratio = 0.1
     md_max_len = 128
     py_max_len = 23
