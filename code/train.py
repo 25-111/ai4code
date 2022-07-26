@@ -1,16 +1,17 @@
-import wandb
 from config import Config, WandbConfig
 from dataset import NotebookDataset
 from model import get_model
 from preprocess import preprocess
 from torch.utils.data import DataLoader
 from train_utils import (
-    yield_criterion,
+    yield_criterions,
     yield_optimizer,
     yield_scaler,
     yield_scheduler,
 )
 from trainer import Trainer
+
+import wandb
 
 
 def main():
@@ -65,8 +66,8 @@ def main():
 
     print("Setting hyperparameters..: Done!")
     optimizer = yield_optimizer(model, config)
-    criterion = yield_criterion(config)
-    scheduler = yield_scheduler(optimizer)
+    criterions = yield_criterions()
+    scheduler = yield_scheduler(optimizer, config)
     scaler = yield_scaler()
     print("Setting hyperparameters..: Done!")
 
@@ -84,7 +85,7 @@ def main():
         dataloaders=[trainloader, validloader],
         model=model,
         optimizer=optimizer,
-        criterion=criterion,
+        criterions=criterions,
         scheduler=scheduler,
         scaler=scaler,
         df_valid=df_valid,

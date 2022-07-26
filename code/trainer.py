@@ -17,7 +17,7 @@ class Trainer:
         dataloaders,
         model,
         optimizer,
-        criterion,
+        criterions,
         scheduler,
         scaler,
         df_valid,
@@ -28,7 +28,7 @@ class Trainer:
         self.trainloader, self.validloader = dataloaders
         self.model = model
         self.optimizer = optimizer
-        self.criterion = criterion
+        self.l2_loss, self.l1_loss = criterions
         self.scheduler = scheduler
         self.scaler = scaler
         self.df_valid = df_valid
@@ -104,7 +104,7 @@ class Trainer:
             with autocast(enabled=True):
                 preds = self.model(ids=ids, mask=mask, fts=fts)
 
-                loss = self.criterion(preds, targets)
+                loss = self.criterions(preds, targets)
 
                 loss_item = loss.item()
                 self.wandb_log(train_batch_loss=loss_item)
@@ -145,7 +145,9 @@ class Trainer:
 
             preds = self.model(ids=ids, mask=mask, fts=fts).view(-1)
 
-            loss = self.criterion(preds, targets)
+            loss = self.l2_loss(
+                preds, targets
+            ) + self.config.l1_weight * self.l1_loss(preds, targets)
 
             loss_item = loss.item()
             self.wandb_log(valid_batch_loss=loss_item)

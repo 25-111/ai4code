@@ -15,12 +15,14 @@ class Config:
     data_type = "md"
 
     # Model
-    prev_model = Path("codebert/codebert-base.pth")
-    adjustment = "scaler-fts"
+    prev_model = Path(
+        "0724-1749-md-graphcodebert-fts-from-graphcodebert-base-scaler-fts/ckpt_003.pth"
+    )
+    adjustment = "scaler-fts-lr*.1"
 
     # Train
     optim = ["AdamW"][0]
-    loss = ["MSE", "L1"][0]
+    l1_weight = 0.1
     valid_ratio = 0.1
     md_max_len = 128
     py_max_len = 23
@@ -28,7 +30,7 @@ class Config:
     num_epochs = 3
     num_workers = 8
     batch_size = 64
-    lr = 3e-4
+    lr = 3e-5
     accum_steps = 4
     seed = 42
 
@@ -56,7 +58,7 @@ class Config:
 class WandbConfig:
     model = Config.prev_model
     optim = Config.optim
-    loss = Config.loss
+    l1_weight = Config.l1_weight
     md_max_len = Config.md_max_len
     py_max_len = Config.py_max_len
     total_max_len = Config.total_max_len
