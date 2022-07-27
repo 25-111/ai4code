@@ -18,11 +18,11 @@ class Config:
     prev_model = Path(
         "0724-1749-md-graphcodebert-fts-from-graphcodebert-base-scaler-fts/ckpt_003.pth"
     )
-    adjustment = "scaler-fts-lr*.1"
+    adjustment = "scaler-fts-l2*.1-lr*.1"
 
     # Train
     optim = ["AdamW"][0]
-    l2_weight, l1_weight = 1, 0.1
+    l2_weight, l1_weight = 0.1, 1
     valid_ratio = 0.1
     md_max_len = 128
     py_max_len = 23

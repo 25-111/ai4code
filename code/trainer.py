@@ -104,7 +104,9 @@ class Trainer:
             with autocast(enabled=True):
                 preds = self.model(ids=ids, mask=mask, fts=fts)
 
-                loss = self.criterions(preds, targets)
+                loss = self.config.l2_weight * self.l2_loss(
+                    preds, targets
+                ) + self.config.l1_weight * self.l1_loss(preds, targets)
 
                 loss_item = loss.item()
                 self.wandb_log(train_batch_loss=loss_item)
