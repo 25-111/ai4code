@@ -158,7 +158,7 @@ class Trainer:
             valid_targets.extend(targets.cpu().detach().numpy().tolist())
             valid_preds.extend(preds.cpu().detach().numpy().tolist())
 
-        del preds, targets, ids, mask, fts, loss
+        del preds, targets, ids, mask, fts, loss_item, loss
         gc.collect()
         torch.cuda.empty_cache()
 

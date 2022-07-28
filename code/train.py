@@ -1,7 +1,7 @@
 from config import Config, WandbConfig
 from dataset import NotebookDataset
 from model import get_model
-from preprocess import preprocess
+from preprocess_with_custom import preprocess_with_custom
 from torch.utils.data import DataLoader
 from train_utils import (
     yield_criterions,
@@ -33,7 +33,7 @@ def main():
         fts_train,
         fts_valid,
         df_orders,
-    ) = preprocess(config)
+    ) = preprocess_with_custom(config)
 
     if config.data_type == "all":
         df_trainset, df_validset = df_train, df_valid

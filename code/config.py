@@ -6,23 +6,16 @@ from pytz import timezone
 
 
 class Config:
-    # Defaults
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    input_dir = Path("../input/AI4Code/")
-    working_dir = Path("../working/")
-
     # Data
     data_type = "md"
 
     # Model
-    prev_model = Path(
-        "0724-1749-md-graphcodebert-fts-from-graphcodebert-base-scaler-fts/ckpt_003.pth"
-    )
-    adjustment = "scaler-fts-l2*.1-lr*.1"
+    prev_model = Path("graphcodebert/ckpt_003.pth")
+    adjustment = "scaler-fts-lr*.5-trainset2"
 
     # Train
     optim = ["AdamW"][0]
-    l2_weight, l1_weight = 0.1, 1
+    l2_weight, l1_weight = 1, 0
     valid_ratio = 0.1
     md_max_len = 128
     py_max_len = 23
@@ -30,7 +23,7 @@ class Config:
     num_epochs = 3
     num_workers = 8
     batch_size = 64
-    lr = 3e-5
+    lr = 1.5e-4
     accum_steps = 4
     seed = 42
 
@@ -47,6 +40,10 @@ class Config:
     )
     trial_name += f"-{adjustment}" if adjustment else ""
 
+    # Defaults
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    input_dir = Path("../input/AI4Code/")
+    working_dir = Path("../working/")
     if base_model == "codebert":
         model_path = "microsoft/codebert-base"
     elif base_model == "graphcodebert":
@@ -59,6 +56,7 @@ class WandbConfig:
     model = Config.prev_model
     optim = Config.optim
     l1_weight = Config.l1_weight
+    l2_weight = Config.l2_weight
     md_max_len = Config.md_max_len
     py_max_len = Config.py_max_len
     total_max_len = Config.total_max_len
@@ -66,4 +64,3 @@ class WandbConfig:
     num_workers = Config.num_workers
     batch_size = Config.batch_size
     lr = Config.lr
-    device = Config.device
