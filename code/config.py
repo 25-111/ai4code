@@ -7,11 +7,11 @@ from pytz import timezone
 
 class Config:
     # Data
-    data_type = "md"
+    custom_data = True
 
     # Model
-    prev_model = Path("graphcodebert/ckpt_003.pth")
-    adjustment = "scaler-fts-lr*.5-trainset2"
+    prev_model = Path("graphcodebert-base/graphcodebert-base.pth")
+    adjustment = "scaler-fts-lr*.5-custom_data"
 
     # Train
     optim = ["AdamW"][0]
@@ -34,9 +34,9 @@ class Config:
     except:
         base_model = str(prev_model).split("/")[0].split("-")[0]
     trial_name = (
-        f"{timestamp}-{data_type}-{base_model}-fts-from-{str(prev_model)[:9]}"
-        if not str(prev_model).endswith("base.pth")
-        else f"{timestamp}-{data_type}-{base_model}-fts-from-{base_model}-base"
+        f"{timestamp}-{base_model}-fts-from-base"
+        if str(prev_model).endswith("base.pth")
+        else f"{timestamp}-{base_model}-fts-from-{str(prev_model)[:9]}"
     )
     trial_name += f"-{adjustment}" if adjustment else ""
 
@@ -64,3 +64,4 @@ class WandbConfig:
     num_workers = Config.num_workers
     batch_size = Config.batch_size
     lr = Config.lr
+    accum_steps = Config.accum_steps

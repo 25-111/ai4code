@@ -28,22 +28,13 @@ def main():
         df_valid,
         df_train_md,
         df_valid_md,
-        df_train_py,
-        df_valid_py,
         fts_train,
         fts_valid,
         df_orders,
     ) = preprocess_with_custom(config)
 
-    if config.data_type == "all":
-        df_trainset, df_validset = df_train, df_valid
-    elif config.data_type == "md":
-        df_trainset, df_validset = df_train_md, df_valid_md
-    elif config.data_type == "py":
-        df_trainset, df_validset = df_train_py, df_valid_py
-
-    trainset = NotebookDataset(df_trainset, fts=fts_train, config=config)
-    validset = NotebookDataset(df_validset, fts=fts_valid, config=config)
+    trainset = NotebookDataset(df_train_md, fts=fts_train, config=config)
+    validset = NotebookDataset(df_valid_md, fts=fts_valid, config=config)
 
     use_pin_mem = config.device.startswith("cuda")
     trainloader = DataLoader(
