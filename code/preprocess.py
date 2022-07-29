@@ -9,6 +9,7 @@ from tqdm import tqdm
 
 def preprocess(config):
     if not osp.exists(config.input_dir / f"{config.mode}.csv"):
+        print("Preprocessing..: Start")
         data_path = list((config.input_dir / config.mode).glob("*.json"))
         notebooks = [
             read_notebook(path)
@@ -98,6 +99,7 @@ def preprocess(config):
             json.dump(
                 fts_valid, open(config.input_dir / "valid_fts.json", "w")
             )
+            print("Preprocessing..: Done!")
 
             return (
                 df_train,
@@ -129,6 +131,7 @@ def preprocess(config):
             df_test.to_csv(config.input_dir / "test.csv", index=False)
             df_test_md.to_csv(config.input_dir / "test_md.csv", index=False)
             json.dump(fts_test, open(config.input_dir / "test_fts.json", "w"))
+            print("Preprocessing..: Done!")
 
             return df_test, df_test_md, fts_test
 
@@ -214,7 +217,7 @@ def sample_cells(cells, sample_size=20):
 def get_features(df):
     features = {}
     df = df.sort_values("rank").reset_index(drop=True)
-    for idx, sub_df in tqdm(df.groupby("id")):
+    for idx, sub_df in df.groupby("id"):
         total_md = sub_df[sub_df.cell_type == "markdown"].shape[0]
         code_sub_df = sub_df[sub_df.cell_type == "code"]
         total_code = code_sub_df.shape[0]

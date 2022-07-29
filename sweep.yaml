@@ -2,10 +2,10 @@ program: train.py
 method: random
 metric:
   goal: minimize
-  name: val_loss
+  name: valid_loss
 parameters:
   learning_rate:
-    values: [0.001, 0.01, 0.003]
+    values: [15e-5, 3e-4, 15e-4, 3e-3, 15e-3]
   decay:
     values: [1e-5, 1e-6, 1e-7]
   momentum:
