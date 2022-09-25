@@ -1,7 +1,8 @@
 from config import Config, WandbConfig
 from dataset import NotebookDataset
 from model import get_model
-from preprocess_with_custom import preprocess_with_custom
+from preprocess import preprocess
+from preprocess_custom import preprocess_custom
 from torch.utils.data import DataLoader
 from train_utils import (
     yield_criterions,
@@ -23,15 +24,26 @@ def main():
     print("Loading Model..: Done!")
 
     print("Loading Data..: Start")
-    (
-        df_train,
-        df_valid,
-        df_train_md,
-        df_valid_md,
-        fts_train,
-        fts_valid,
-        df_orders,
-    ) = preprocess_with_custom(config)
+    if not config.custom_data:
+        (
+            df_train,
+            df_valid,
+            df_train_md,
+            df_valid_md,
+            fts_train,
+            fts_valid,
+            df_orders,
+        ) = preprocess(config)
+    else:
+        (
+            df_train,
+            df_valid,
+            df_train_md,
+            df_valid_md,
+            fts_train,
+            fts_valid,
+            df_orders,
+        ) = preprocess_custom(config)
 
     trainset = NotebookDataset(df_train_md, fts=fts_train, config=config)
     validset = NotebookDataset(df_valid_md, fts=fts_valid, config=config)

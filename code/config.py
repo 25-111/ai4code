@@ -7,20 +7,20 @@ from pytz import timezone
 
 class Config:
     # Data
-    custom_data = True
+    custom_data = False
 
     # Model
     prev_model = Path("graphcodebert-base/graphcodebert-base.pth")
-    adjustment = "scaler-fts-lr*.5-custom_data"
+    adjustment = "l2*1-l1*.5-lr*.5"
 
     # Train
     optim = ["AdamW"][0]
-    l2_weight, l1_weight = 1, 0
+    l2_weight, l1_weight = 1, 0.5
     valid_ratio = 0.1
     md_max_len = 128
     py_max_len = 23
     total_max_len = 512
-    num_epochs = 3
+    num_epochs = 2
     num_workers = 8
     batch_size = 64
     lr = 1.5e-4
@@ -30,7 +30,7 @@ class Config:
     # Log
     timestamp = datetime.now(timezone("Asia/Seoul")).strftime("%m%d-%H%M")
     try:
-        base_model = str(prev_model).split("/")[0].split("-")[3]
+        base_model = str(prev_model).split("/")[0].split("-")[2]
     except:
         base_model = str(prev_model).split("/")[0].split("-")[0]
     trial_name = (
@@ -38,6 +38,7 @@ class Config:
         if str(prev_model).endswith("base.pth")
         else f"{timestamp}-{base_model}-fts-from-{str(prev_model)[:9]}"
     )
+    trial_name += "-custom_data" if custom_data else ""
     trial_name += f"-{adjustment}" if adjustment else ""
 
     # Defaults
