@@ -24,14 +24,14 @@ class NotebookDataset(Dataset):
             padding="max_length",
             truncation=True,
             return_token_type_ids=True,
-            max_length=self.config.md_max_len,
+            # max_length=self.config.md_max_len,
         )
         code_inputs = self.tokenizer.batch_encode_plus(
             [str(x) for x in self.fts[item.id]["codes"]],
             add_special_tokens=True,
             padding="max_length",
             truncation=True,
-            max_length=self.config.py_max_len,
+            # max_length=self.config.py_max_len,
         )
 
         n_md = self.fts[item.id]["total_md"]

@@ -9,6 +9,7 @@ from tqdm import tqdm
 
 def preprocess(config):
     if not osp.exists(config.input_dir / f"{config.mode}.csv"):
+        print("Preprocessing..: Start")
         data_path = list((config.input_dir / config.mode).glob("*.json"))
         notebooks = [
             read_notebook(path)
@@ -72,18 +73,6 @@ def preprocess(config):
             df_train = df.loc[idx_train].reset_index(drop=True).dropna()
             df_valid = df.loc[idx_valid].reset_index(drop=True).dropna()
 
-            df_train_py = (
-                df_train[df_train["cell_type"] == "code"]
-                .drop("parent_id", axis=1)
-                .dropna()
-                .reset_index(drop=True)
-            )
-            df_valid_py = (
-                df_valid[df_valid["cell_type"] == "code"]
-                .drop("parent_id", axis=1)
-                .dropna()
-                .reset_index(drop=True)
-            )
             df_train_md = (
                 df_train[df_train["cell_type"] == "markdown"]
                 .drop("parent_id", axis=1)
@@ -104,38 +93,26 @@ def preprocess(config):
             df_valid.to_csv(config.input_dir / "valid.csv", index=False)
             df_train_md.to_csv(config.input_dir / "train_md.csv", index=False)
             df_valid_md.to_csv(config.input_dir / "valid_md.csv", index=False)
-            df_train_py.to_csv(config.input_dir / "train_py.csv", index=False)
-            df_valid_py.to_csv(config.input_dir / "valid_py.csv", index=False)
             json.dump(
                 fts_train, open(config.input_dir / "train_fts.json", "w")
             )
             json.dump(
                 fts_valid, open(config.input_dir / "valid_fts.json", "w")
             )
+            print("Preprocessing..: Done!")
 
             return (
                 df_train,
                 df_valid,
                 df_train_md,
                 df_valid_md,
-                df_train_py,
-                df_valid_py,
                 fts_train,
                 fts_valid,
                 df_orders,
             )
 
         elif config.mode == "test":
-            df_test = (
-                (
-                    pd.concat(notebooks)
-                    .set_index("id", append=True)
-                    .swaplevel()
-                    .sort_index(level="id", sort_remaining=False)
-                )
-                .reset_index(drop=True)
-                .dropna()
-            )
+            df_test = df.reset_index(drop=True).dropna()
 
             df_test["rank"] = df_test.groupby(["id", "cell_type"]).cumcount()
             df_test["pred"] = df_test.groupby(["id", "cell_type"])[
@@ -143,15 +120,8 @@ def preprocess(config):
             ].rank(pct=True)
             df_test["pct_rank"] = 0
 
-            df_test_py = (
-                df_test[df_test["cell_type"] == "code"]
-                .drop("parent_id", axis=1)
-                .dropna()
-                .reset_index(drop=True)
-            )
             df_test_md = (
                 df_test[df_test["cell_type"] == "markdown"]
-                .drop("parent_id", axis=1)
                 .dropna()
                 .reset_index(drop=True)
             )
@@ -160,10 +130,10 @@ def preprocess(config):
 
             df_test.to_csv(config.input_dir / "test.csv", index=False)
             df_test_md.to_csv(config.input_dir / "test_md.csv", index=False)
-            df_test_py.to_csv(config.input_dir / "test_py.csv", index=False)
             json.dump(fts_test, open(config.input_dir / "test_fts.json", "w"))
+            print("Preprocessing..: Done!")
 
-            return df_test, df_test_md, df_test_py, fts_test
+            return df_test, df_test_md, fts_test
 
     else:
         if config.mode == "train":
@@ -178,12 +148,6 @@ def preprocess(config):
             ).reset_index(drop=True)
             df_valid_md = pd.read_csv(
                 config.input_dir / "valid_md.csv"
-            ).reset_index(drop=True)
-            df_train_py = pd.read_csv(
-                config.input_dir / "train_py.csv"
-            ).reset_index(drop=True)
-            df_valid_py = pd.read_csv(
-                config.input_dir / "valid_py.csv"
             ).reset_index(drop=True)
             fts_train = json.load(
                 open(config.input_dir / "train_fts.json", "r")
@@ -201,8 +165,6 @@ def preprocess(config):
                 df_valid,
                 df_train_md,
                 df_valid_md,
-                df_train_py,
-                df_valid_py,
                 fts_train,
                 fts_valid,
                 df_orders,
@@ -215,11 +177,8 @@ def preprocess(config):
             df_test_md = pd.read_csv(
                 config.input_dir / "test_md.csv"
             ).reset_index(drop=True)
-            df_test_py = pd.read_csv(
-                config.input_dir / "test_py.csv"
-            ).reset_index(drop=True)
             fts_test = json.load(open(config.input_dir / "test_fts.json", "r"))
-            return df_test, df_test_md, df_test_py, fts_test
+            return df_test, df_test_md, fts_test
 
 
 def read_notebook(path):
@@ -258,7 +217,7 @@ def sample_cells(cells, sample_size=20):
 def get_features(df):
     features = {}
     df = df.sort_values("rank").reset_index(drop=True)
-    for idx, sub_df in tqdm(df.groupby("id")):
+    for idx, sub_df in df.groupby("id"):
         total_md = sub_df[sub_df.cell_type == "markdown"].shape[0]
         code_sub_df = sub_df[sub_df.cell_type == "code"]
         total_code = code_sub_df.shape[0]

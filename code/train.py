@@ -1,16 +1,18 @@
-import wandb
 from config import Config, WandbConfig
 from dataset import NotebookDataset
 from model import get_model
 from preprocess import preprocess
+from preprocess_custom import preprocess_custom
 from torch.utils.data import DataLoader
 from train_utils import (
-    yield_criterion,
+    yield_criterions,
     yield_optimizer,
     yield_scaler,
     yield_scheduler,
 )
 from trainer import Trainer
+
+import wandb
 
 
 def main():
@@ -22,27 +24,29 @@ def main():
     print("Loading Model..: Done!")
 
     print("Loading Data..: Start")
-    (
-        df_train,
-        df_valid,
-        df_train_md,
-        df_valid_md,
-        df_train_py,
-        df_valid_py,
-        fts_train,
-        fts_valid,
-        df_orders,
-    ) = preprocess(config)
+    if not config.custom_data:
+        (
+            df_train,
+            df_valid,
+            df_train_md,
+            df_valid_md,
+            fts_train,
+            fts_valid,
+            df_orders,
+        ) = preprocess(config)
+    else:
+        (
+            df_train,
+            df_valid,
+            df_train_md,
+            df_valid_md,
+            fts_train,
+            fts_valid,
+            df_orders,
+        ) = preprocess_custom(config)
 
-    if config.data_type == "all":
-        df_trainset, df_validset = df_train, df_valid
-    elif config.data_type == "md":
-        df_trainset, df_validset = df_train_md, df_valid_md
-    elif config.data_type == "py":
-        df_trainset, df_validset = df_train_py, df_valid_py
-
-    trainset = NotebookDataset(df_trainset, fts=fts_train, config=config)
-    validset = NotebookDataset(df_validset, fts=fts_valid, config=config)
+    trainset = NotebookDataset(df_train_md, fts=fts_train, config=config)
+    validset = NotebookDataset(df_valid_md, fts=fts_valid, config=config)
 
     use_pin_mem = config.device.startswith("cuda")
     trainloader = DataLoader(
@@ -65,8 +69,8 @@ def main():
 
     print("Setting hyperparameters..: Done!")
     optimizer = yield_optimizer(model, config)
-    criterion = yield_criterion(config)
-    scheduler = yield_scheduler(optimizer)
+    criterions = yield_criterions()
+    scheduler = yield_scheduler(optimizer, config)
     scaler = yield_scaler()
     print("Setting hyperparameters..: Done!")
 
@@ -84,7 +88,7 @@ def main():
         dataloaders=[trainloader, validloader],
         model=model,
         optimizer=optimizer,
-        criterion=criterion,
+        criterions=criterions,
         scheduler=scheduler,
         scaler=scaler,
         df_valid=df_valid,
